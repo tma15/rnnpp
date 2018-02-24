@@ -19,7 +19,7 @@ class Node {
 
     virtual void forward(const std::vector<Tensor>& inputs, Tensor &output)=0;
 
-    virtual void backward(const std::vector<Tensor>& inputs, Tensor &output){};
+    virtual void backward(const std::vector<Tensor>& inputs, Tensor &output, int i)=0;
 
     std::vector<int> args;
 
@@ -42,6 +42,7 @@ class InputNode: public Node {
     ~InputNode() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
+    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
 
     std::string type() { return "InputNode"; }
 
@@ -70,6 +71,7 @@ class ParameterNode: public Node {
     ~ParameterNode() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
+    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
 
     std::string type() { return "ParameterNode"; }
 
@@ -87,6 +89,7 @@ class Mult: public Node {
 
     ~Mult(){}
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
+    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
 
     std::string type() { return "Mult"; }
 };
@@ -101,6 +104,7 @@ class SquaredDistance: public Node {
     ~SquaredDistance(){}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
+    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i);
 
     std::string type() { return "SquaredDistance"; }
 };
@@ -114,6 +118,7 @@ class Embed: public Node {
     ~Embed() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output) {}
+    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
 
     std::string type() { return "Embed"; }
 };
