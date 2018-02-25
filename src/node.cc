@@ -76,8 +76,8 @@ void SquaredDistance::forward(const std::vector<Tensor> &inputs, Tensor &output)
     for (int i=0; i < output.dim.size(); ++i) {
       std::cout << "out[" << i << "]" << " " << output.data[i + b * output.dim.size()] << std::endl;
 // f(y, y') = (y - y')^2
-// dE/dy = dE/df * df/dy = dE/df * y'
-// dE/dy' = dE/df * df/dy' = dE/df * y
+// dE/dy = dE/df * df/dy = dE/df * 2 * (y - y') * -1
+// dE/dy' = dE/df * df/dy' = dE/df * 2 * (y - y') * 1
 void SquaredDistance::backward(const std::vector<Tensor> &inputs, Tensor &output, int ii) {
   output.dim = Dim({inputs[ii].dim.shape[0]}, 1);
   int k = output.dim.size() * output.dim.batch_size;
@@ -92,13 +92,15 @@ void SquaredDistance::backward(const std::vector<Tensor> &inputs, Tensor &output
   if (ii == 0) {
     for (int b=0; b < inputs[1].dim.batch_size; ++b) {
       for (int i=0; i < output.dim.size(); ++i) {
-        output.data[i] += 2. * inputs[1].data[i + b * inputs[1].dim.size()];
+        output.data[i] += 2. * (inputs[0].data[i + b * inputs[0].dim.size()] - \
+            inputs[1].data[i + b * inputs[1].dim.size()]);
       }
     }
   } else if (ii == 1) {
     for (int b=0; b < inputs[0].dim.batch_size; ++b) {
       for (int i=0; i < output.dim.size(); ++i) {
-        output.data[i] += -2. * inputs[0].data[i + b * inputs[0].dim.size()];
+        output.data[i] += -2. * (inputs[0].data[i + b * inputs[0].dim.size()] - \
+            inputs[1].data[i + b * inputs[i].dim.size()]);
       }
     }
   }
