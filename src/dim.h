@@ -15,6 +15,8 @@ class Dim {
     std::vector<int> shape;
     int batch_size;
 
+    int operator[] (int i) { return shape[i]; }
+
     int size() const {
       int s = 1;
       for (int i=0; i < shape.size(); ++i) {
