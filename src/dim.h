@@ -2,20 +2,26 @@
 #define RNNPP_DIM_H_
 
 #include <iostream>
+#include <vector>
 
 class Dim {
   public:
     Dim(){}
     ~Dim(){}
 
+    Dim(std::vector<int> s): shape(s), batch_size(1) {}
+
+    Dim(std::vector<int> s, int b): shape(s), batch_size(b) {}
+
     Dim(std::initializer_list<int> s): shape(s.begin(), s.end()), batch_size(1) {}
 
     Dim(std::initializer_list<int> s, int b): shape(s.begin(), s.end()), batch_size(b) {}
 
     std::vector<int> shape;
+
     int batch_size;
 
-    int operator[] (int i) { return shape[i]; }
+    int operator[] (int i) const { return shape[i]; }
 
     int size() const {
       int s = 1;
@@ -25,7 +31,7 @@ class Dim {
       return s;
     }
 
-    void print_shape() {
+    void print_shape() const {
       std::cout << "(";
       for (int i=0; i < shape.size()-1; ++i) {
         std::cout << shape[i] << ",";
