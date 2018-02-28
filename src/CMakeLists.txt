@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_library(rnnpp SHARED
 	dim.h
 	expr.h expr.cc
+	error.h
 	graph.h
 	tensor.h
 	node.h node.cc
