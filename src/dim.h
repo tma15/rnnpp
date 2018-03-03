@@ -15,11 +15,17 @@ class Dim {
 
     Dim(std::initializer_list<int> s): shape(s.begin(), s.end()), batch_size(1) {}
 
-    Dim(std::initializer_list<int> s, int b): shape(s.begin(), s.end()), batch_size(b) {}
+    Dim(std::initializer_list<int> s, int b): shape(s.begin(), s.end()), batch_size(b) {
+    }
 
-    std::vector<int> shape;
-
-    int batch_size;
+    friend std::ostream& operator<<(std::ostream &os, const Dim &d) {
+      os << "(";
+      for (int i=0; i < d.shape.size()-1; ++i) {
+        os << d.shape[i] << ",";
+      }
+      os << d.shape[d.shape.size()-1] << ")";
+      return os;
+    };
 
     int operator[] (int i) const { return shape[i]; }
 
@@ -31,13 +37,9 @@ class Dim {
       return s;
     }
 
-    void print_shape() const {
-      std::cout << "(";
-      for (int i=0; i < shape.size()-1; ++i) {
-        std::cout << shape[i] << ",";
-      }
-      std::cout << shape[shape.size()-1] << ")" << std::endl;
-    }
+    std::vector<int> shape;
+
+    int batch_size;
 
 };
 
