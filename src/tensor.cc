@@ -7,14 +7,19 @@ namespace rnnpp {
 
 std::ostream& operator<<(std::ostream &os, const Tensor &t) {
   RNNPP_CHECK(t.dim.shape.size() == 2, "Tensor must be two dimension");
+  os << "[";
   for (int i=0; i < t.dim[0]; ++i) {
     int offset = i * t.dim[1];
+    os << "[";
     for (int j=0; j < t.dim[1]-1; ++j) {
       os << t.data[offset + j] << ",";
     }
-    os << t.data[offset + t.dim[1]-1] << std::endl;
+    os << t.data[offset + t.dim[1]-1] << "]";
+    if (i < t.dim[0]-1) {
+      os << "," << std::endl;
+    }
   }
-//  os << std::endl;
+  os << "]" << std::endl;
   return os;
 }
 
