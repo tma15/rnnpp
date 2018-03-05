@@ -10,6 +10,9 @@ std::ostream& operator<<(std::ostream &os, const Tensor &t) {
   os << "[";
   for (int i=0; i < t.dim[0]; ++i) {
     int offset = i * t.dim[1];
+    if (i > 0) {
+      std::cout << " ";
+    }
     os << "[";
     for (int j=0; j < t.dim[1]-1; ++j) {
       os << t.data[offset + j] << ",";
@@ -19,7 +22,7 @@ std::ostream& operator<<(std::ostream &os, const Tensor &t) {
       os << "," << std::endl;
     }
   }
-  os << "]" << std::endl;
+  os << "]";
   return os;
 }
 
@@ -39,15 +42,37 @@ Tensor Tensor::transpose() {
   return dest;
 }
 
-void elementwise_add(const Tensor &src, Tensor &dest) {
-  for (int i=0; i < dest.dim.size(); ++i) {
-    dest.data[i] += src.data[i];
+void assign(const Tensor &src, Tensor &dest) {
+  for (int b=0; b < src.dim.batch_size; ++b) {
+    for (int i=0; i < src.dim.size(); ++i) {
+      dest.data[i + dest.dim.size() * b] = src.data[i + src.dim.size() * b];
+    }
   }
 }
 
-void elementwise_subtract(const Tensor &src, Tensor &dest) {
-  for (int i=0; i < dest.dim.size(); ++i) {
-    dest.data[i] -= src.data[i];
+void elementwise_add(const Tensor &src, Tensor &dest) {
+  int max_b = std::max(src.dim.batch_size, dest.dim.batch_size);
+  for (int b=0; b < max_b; ++b) {
+    for (int i=0; i < dest.dim.size(); ++i) {
+      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] -= src.data[i + src.dim.size() * b % src.dim.batch_size];
+    }
+  }
+}
+
+void elementwise_sub(const Tensor &src, Tensor &dest) {
+  int max_b = std::max(src.dim.batch_size, dest.dim.batch_size);
+  for (int b=0; b < max_b; ++b) {
+    for (int i=0; i < dest.dim.size(); ++i) {
+      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] -= src.data[i + src.dim.size() * b % src.dim.batch_size];
+    }
+  }
+}
+
+void elementwise_square(Tensor &dest) {
+  for (int b=0; b < dest.dim.batch_size; ++b) {
+    for (int i=0; i < dest.dim.size(); ++i) {
+      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] *= dest.data[i + dest.dim.size() * b % dest.dim.batch_size];
+    }
   }
 }
 
@@ -60,6 +85,8 @@ void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest) {
   int max_b = std::max(lhs.dim.batch_size, rhs.dim.batch_size);
 
 //  std::cout << dest.dim << "=" << lhs.dim << " x " << rhs.dim << std::endl;
+//  std::cout << lhs << std::endl;
+//  std::cout << rhs << std::endl;
 
   RNNPP_CHECK(lhs.dim[1] == rhs.dim[0], "Invalid dimension in matmul");
   RNNPP_CHECK(dest.dim[0] == lhs.dim[0], "Invalid dimension in matmul");

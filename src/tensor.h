@@ -7,7 +7,7 @@ namespace rnnpp {
 
 class Tensor {
   public:
-    Tensor() {}
+    Tensor(): dim(Dim()), data(nullptr) {}
 
     Tensor(const Dim &d, const std::vector<float> &v): dim(d) {
       std::memcpy(data, v.data(), sizeof(float) * v.size());
@@ -27,7 +27,13 @@ class Tensor {
     Dim dim;
 };
 
+void assign(const Tensor &src, Tensor &dest);
+
 void elementwise_add(const Tensor &src, Tensor &dest);
+
+void elementwise_sub(const Tensor &src, Tensor &dest);
+
+void elementwise_square(Tensor &dest);
 
 void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest);
 
