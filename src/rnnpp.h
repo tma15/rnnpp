@@ -12,7 +12,7 @@ Expression input(Graph &g, std::vector<float> &value);
 
 Expression input(Graph &g, const Dim &dim, std::vector<float> &value);
 
-Expression parameter(Graph &g, std::initializer_list<int> dim);
+Expression parameter(Graph &g, const Parameter& p);
 
 Expression squared_distance(const Expression &a, const Expression &b);
 

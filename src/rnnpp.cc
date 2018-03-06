@@ -3,6 +3,7 @@
 
 #include "graph.h"
 #include "node.h"
+#include "parameter.h"
 #include "rnnpp.h"
 
 namespace rnnpp {
@@ -23,11 +24,11 @@ Expression input(Graph &g, const Dim &dim, std::vector<float> &value) {
   return e;
 }
 
-Expression parameter(Graph &g, std::initializer_list<int> dim) {
+Expression parameter(Graph &g, const Parameter &p) {
   int i = g.nodes().size();
-  Node* node = new ParameterNode(dim);
+  Node* node = new ParameterNode(p);
   g.add_node(node);
-
+  g.add_parameter_node(i);
   Expression e(&g, i);
   return e;
 }
