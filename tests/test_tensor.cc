@@ -71,10 +71,37 @@ class TensorElementwiseTest: public ::testing::Test {
 
     Tensor t1;
     Tensor t2;
+    Tensor t3;
 };
+
+TEST_F(TensorElementwiseTest, Assign) {
+  t3.dim = t1.dim;
+  t3.data = new float[t1.dim.size()];
+
+  assign(t1, t3);
+
+  t1.data[0] += 2;
+  t1.data[1] += 2;
+  t1.data[2] += 2;
+  t1.data[3] += 2;
+  t1.data[4] += 2;
+  t1.data[5] += 2;
+
+  EXPECT_EQ(t3.data[0], 0.);
+  EXPECT_EQ(t3.data[1], 1.);
+  EXPECT_EQ(t3.data[2], 2.);
+  EXPECT_EQ(t3.data[3], 3.);
+  EXPECT_EQ(t3.data[4], 4.);
+  EXPECT_EQ(t3.data[5], 5.);
+}
 
 TEST_F(TensorElementwiseTest, Add) {
   elementwise_add(t1, t2);
+  EXPECT_EQ(t2.data[0], 1.);
+}
+
+TEST_F(TensorElementwiseTest, Sub) {
+  elementwise_sub(t1, t2);
   EXPECT_EQ(t2.data[0], 1.);
 }
 
