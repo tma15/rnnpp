@@ -10,6 +10,7 @@ class Tensor {
     Tensor(): dim(Dim()), data(nullptr) {}
 
     Tensor(const Dim &d, const std::vector<float> &v): dim(d) {
+      data = new float[v.size()];
       std::memcpy(data, v.data(), sizeof(float) * v.size());
     }
 
