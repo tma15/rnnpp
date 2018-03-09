@@ -30,13 +30,18 @@ Tensor Tensor::transpose() {
   Tensor dest;
 
   std::vector<int> d(dim.shape.size());
+  std::vector<int> s(dim.stride.size());
 
   // Example: [2, 1, 5, 3, 4] ==>  [4, 3, 5, 1, 2]
   for (int i=0; i < dim.shape.size() / 2 + dim.shape.size() % 2; ++i) {
     d[i] = dim[dim.shape.size() - 1 - i];
     d[dim.shape.size() - 1 - i] = dim[i];
+
+    s[i] = dim.stride[dim.stride.size() - 1 - i];
+    s[dim.stride.size() - 1 - i] = dim.stride[i];
   }
   dest.dim = Dim(d, dim.batch_size);
+  dest.dim.stride = s;
 
   dest.data = data;
   return dest;

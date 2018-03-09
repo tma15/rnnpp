@@ -5,17 +5,26 @@
 #include <vector>
 
 class Dim {
+
   public:
     Dim(){}
+
     ~Dim(){}
 
-    Dim(std::vector<int> s): shape(s), batch_size(1) {}
+    Dim(std::vector<int> s): shape(s), batch_size(1) {
+      set_stride(s);
+    }
 
-    Dim(std::vector<int> s, int b): shape(s), batch_size(b) {}
+    Dim(std::vector<int> s, int b): shape(s), batch_size(b) {
+      set_stride(s);
+    }
 
-    Dim(std::initializer_list<int> s): shape(s.begin(), s.end()), batch_size(1) {}
+    Dim(std::initializer_list<int> s): shape(s.begin(), s.end()), batch_size(1) {
+      set_stride(shape);
+    }
 
     Dim(std::initializer_list<int> s, int b): shape(s.begin(), s.end()), batch_size(b) {
+      set_stride(shape);
     }
 
     friend std::ostream& operator<<(std::ostream &os, const Dim &d) {
@@ -37,9 +46,28 @@ class Dim {
       return s;
     }
 
+    void set_stride(std::vector<int> s) {
+      stride = std::vector<int>(s.size());
+      stride.back() = 1;
+      for (int i=0; i < s.size(); ++i) {
+        stride[i] = 1;
+        for (int j=i+1; j < s.size(); ++j) {
+          stride[i] *= s[j];
+        }
+      }
+    }
+
+
     std::vector<int> shape;
 
+    /**
+     * stride[ndim] = 1
+     * stride[i] = prod_{j=i+1}^{ndim} shape[j]
+     */
+    std::vector<int> stride;
+
     int batch_size;
+
 
 };
 
