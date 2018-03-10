@@ -5,6 +5,19 @@
 
 namespace rnnpp {
 
+namespace internal {
+
+constexpr int adder(const std::vector<int> &shape, int k, int arg) {
+  return shape[k] * arg;
+}
+
+template<typename ... Args> 
+constexpr int adder(const std::vector<int> &shape, int k, int head, Args... tail) {
+  return shape[k] * head + adder(shape, k + 1, tail...);
+}
+
+} // internal
+
 class Tensor {
   public:
     Tensor(): dim(Dim()), data(nullptr) {}
@@ -17,6 +30,13 @@ class Tensor {
     ~Tensor() {}
 
     friend std::ostream& operator<<(std::ostream &os, const Tensor &t);
+
+    template <typename ... Args>
+    float& operator() (Args const & ... args) {
+      int k = internal::adder(dim.stride, 0, args...);
+      return data[k];
+    }
+
 
     float* cdata() const { return data; }
 
