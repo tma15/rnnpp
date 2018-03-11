@@ -91,11 +91,22 @@ class TensorElementwiseTest: public ::testing::Test {
                             4., 5.,
                             6., 7.};
       t3 = Tensor(Dim({3, 2}), v3);
+
+      std::vector<float> v4{2., 3.,
+                            4., 5.,
+                            6., 7.,
+
+                            0., 1.,
+                            2., 3.,
+                            4., 5.};
+      t4 = Tensor(Dim({3, 2}, 2), v4);
+
     }
 
     Tensor t1;
     Tensor t2;
     Tensor t3;
+    Tensor t4;
 };
 
 TEST_F(TensorElementwiseTest, ElementAdd) {
@@ -103,9 +114,6 @@ TEST_F(TensorElementwiseTest, ElementAdd) {
   t.dim = t1.dim;
   t.data = new float[t.dim.size()];
   t = t1 + t2;
-//  std::cout << t1 << std::endl;
-//  std::cout << t2 << std::endl;
-//  std::cout << t << std::endl;
   EXPECT_EQ(t(0, 0), 1.);
   EXPECT_EQ(t(0, 1), 3.);
   EXPECT_EQ(t(1, 0), 5.);
@@ -113,6 +121,22 @@ TEST_F(TensorElementwiseTest, ElementAdd) {
   EXPECT_EQ(t(2, 0), 9.);
   EXPECT_EQ(t(2, 1), 11.);
 }
+
+TEST_F(TensorElementwiseTest, BatchedElementAdd) {
+  Tensor t;
+  t.dim = Dim(t1.dim.shape, 2);
+  t.data = new float[t.dim.size() * 2];
+  t = t1 + t4;
+  std::cout << "t:" << t << std::endl;
+//  EXPECT_EQ(t(0, 0), 1.);
+//  EXPECT_EQ(t(0, 1), 3.);
+//  EXPECT_EQ(t(1, 0), 5.);
+//  EXPECT_EQ(t(1, 1), 7.);
+//  EXPECT_EQ(t(2, 0), 9.);
+//  EXPECT_EQ(t(2, 1), 11.);
+  std::cout << "fin: " << std::endl;
+}
+
 
 TEST_F(TensorElementwiseTest, Lengthy) {
   Tensor t;

@@ -21,6 +21,7 @@ constexpr int adder(const std::vector<int> &shape, int k, int head, Args... tail
 template<typename sub_t> 
 struct Exp {
   inline const sub_t& self(void) const { return *static_cast<const sub_t*>(this); }
+
   inline sub_t* ptrself(void) { return static_cast<sub_t*>(this); }
 };
 
@@ -51,8 +52,12 @@ struct ExpEngine {
   inline static void run(int size, Exp<dst_t> *dst, const Exp<src_t> &src) {
     dst_t dst_ = dst->self();
     src_t src_ = src.self();
-    for (int i=0; i < size; ++i) {
-      saver::save(dst_.reval(i), src_.eval(i));
+    int max_b = src_.batch_size();
+
+    for (int b=0; b < max_b; ++b) {
+      for (int i=0; i < size; ++i) {
+        saver::save(dst_.reval(i, b), src_.eval(i, b));
+      }
     }
   }
 };
@@ -74,9 +79,11 @@ struct UnaryMapExp: public Exp< UnaryMapExp<op, src_t> > {
   const src_t& src;
   UnaryMapExp(const src_t &src): src(src) {}
 
-  inline float eval(int i) const {
-    return op::map(src.eval(i)); 
+  inline float eval(int i, int b) const {
+    return op::map(src.eval(i, b)); 
   }
+
+  int batch_size() const { return src.batch_size(); }
 };
 
 template <typename op, typename src_t>
@@ -123,9 +130,11 @@ struct BinaryMapExp: public Exp< BinaryMapExp<op, lhs_t, rhs_t> > {
   const rhs_t& rhs;
   BinaryMapExp(const lhs_t &lhs, const rhs_t &rhs): lhs(lhs), rhs(rhs) {}
 
-  inline float eval(int i) const {
-    return op::map(lhs.eval(i), rhs.eval(i)); 
+  inline float eval(int i, int b) const {
+    return op::map(lhs.eval(i, b), rhs.eval(i, b)); 
   }
+
+  int batch_size() const { return std::max(lhs.self().batch_size(), rhs.self().batch_size()); }
 };
 
 template <typename op, typename lhs_t, typename rhs_t>
@@ -171,7 +180,6 @@ operator/ (const Exp<lhs_t> &lhs, const internal::Exp<rhs_t> &rhs) {
 
 
 class Tensor: public internal::Exp<Tensor> {
-//class Tensor {
   public:
     Tensor(): dim(Dim()), data(nullptr) {}
 
@@ -226,14 +234,23 @@ class Tensor: public internal::Exp<Tensor> {
       return *this;
     }
 
-    inline float eval(int i) const { return data[i]; }
-    inline float& reval(int i) { return data[i]; }
+    inline float eval(int i, int b) const { 
+      int skip = b * (dim.batch_size > 1) * dim.size();
+      return data[i + skip];
+    }
+
+    inline float& reval(int i, int b) const { 
+      int skip = b * (dim.batch_size > 1) * dim.size();
+      return data[i + skip]; 
+    }
 
     float* cdata() const { return data; }
 
     float* rdata() { return data; }
 
     Tensor transpose();
+
+    int batch_size() const { return dim.batch_size; }
 
     float *data;
     Dim dim;
