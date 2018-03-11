@@ -11,7 +11,9 @@ using namespace rnnpp;
 class TensorAccessTest: public ::testing::Test {
   protected:
     void SetUp() {
-      std::vector<float> v{0., 1., 2., 3., 4., 5.};
+      std::vector<float> v{0., 1.,
+                           2., 3.,
+                           4., 5.};
       t1 = Tensor(Dim({3, 2}), v);
     };
     Tensor t1;
@@ -26,10 +28,23 @@ TEST_F(TensorAccessTest, Access) {
   EXPECT_EQ(t1.data[5], 5.);
 }
 
+TEST_F(TensorAccessTest, Access2) {
+  EXPECT_EQ(t1(0, 0), 0.);
+  EXPECT_EQ(t1(0, 1), 1.);
+  EXPECT_EQ(t1(1, 0), 2.);
+  EXPECT_EQ(t1(1, 1), 3.);
+  EXPECT_EQ(t1(2, 0), 4.);
+  EXPECT_EQ(t1(2, 1), 5.);
+}
+
+
 TEST_F(TensorAccessTest, Transpose0) {
   Tensor t2 = t1.transpose();
   EXPECT_EQ(t2.dim[0], 2);
   EXPECT_EQ(t2.dim[1], 3);
+
+//  std::cout << "t1:\n" << t1 << std::endl;
+//  std::cout << "t2:\n" << t2 << std::endl;
 }
 
 
@@ -62,11 +77,20 @@ TEST_F(TensorAccessTest, Transpose2) {
 class TensorElementwiseTest: public ::testing::Test {
   protected:
     void SetUp() {
-      std::vector<float> v1{0., 1., 2., 3., 4., 5.};
+      std::vector<float> v1{0., 1.,
+                            2., 3.,
+                            4., 5.};
       t1 = Tensor(Dim({3, 2}), v1);
 
-      std::vector<float> v2{1., 2., 3., 4., 5., 6.};
+      std::vector<float> v2{1., 2.,
+                            3., 4.,
+                            5., 6.};
       t2 = Tensor(Dim({3, 2}), v2);
+
+      std::vector<float> v3{2., 3.,
+                            4., 5.,
+                            6., 7.};
+      t3 = Tensor(Dim({3, 2}), v3);
     }
 
     Tensor t1;
@@ -74,35 +98,34 @@ class TensorElementwiseTest: public ::testing::Test {
     Tensor t3;
 };
 
-TEST_F(TensorElementwiseTest, Assign) {
-  t3.dim = t1.dim;
-  t3.data = new float[t1.dim.size()];
-
-  assign(t1, t3);
-
-  t1.data[0] += 2;
-  t1.data[1] += 2;
-  t1.data[2] += 2;
-  t1.data[3] += 2;
-  t1.data[4] += 2;
-  t1.data[5] += 2;
-
-  EXPECT_EQ(t3.data[0], 0.);
-  EXPECT_EQ(t3.data[1], 1.);
-  EXPECT_EQ(t3.data[2], 2.);
-  EXPECT_EQ(t3.data[3], 3.);
-  EXPECT_EQ(t3.data[4], 4.);
-  EXPECT_EQ(t3.data[5], 5.);
+TEST_F(TensorElementwiseTest, ElementAdd) {
+  Tensor t;
+  t.dim = t1.dim;
+  t.data = new float[t.dim.size()];
+  t = t1 + t2;
+//  std::cout << t1 << std::endl;
+//  std::cout << t2 << std::endl;
+//  std::cout << t << std::endl;
+  EXPECT_EQ(t(0, 0), 1.);
+  EXPECT_EQ(t(0, 1), 3.);
+  EXPECT_EQ(t(1, 0), 5.);
+  EXPECT_EQ(t(1, 1), 7.);
+  EXPECT_EQ(t(2, 0), 9.);
+  EXPECT_EQ(t(2, 1), 11.);
 }
 
-TEST_F(TensorElementwiseTest, Add) {
-  elementwise_add(t1, t2);
-  EXPECT_EQ(t2.data[0], 1.);
-}
-
-TEST_F(TensorElementwiseTest, Sub) {
-  elementwise_sub(t1, t2);
-  EXPECT_EQ(t2.data[0], 1.);
+TEST_F(TensorElementwiseTest, Lengthy) {
+  Tensor t;
+  t.dim = t1.dim;
+  t.data = new float[t.dim.size()];
+  t = square((t1 - t2) * t3);
+//  std::cout << t << std::endl;
+  EXPECT_EQ(t(0, 0), 4.);
+  EXPECT_EQ(t(0, 1), 9.);
+  EXPECT_EQ(t(1, 0), 16.);
+  EXPECT_EQ(t(1, 1), 25.);
+  EXPECT_EQ(t(2, 0), 36.);
+  EXPECT_EQ(t(2, 1), 49.);
 }
 
 
@@ -168,14 +191,15 @@ TEST_F(TensorMatmulTest, Matmul1) {
 
 
 TEST_F(TensorMatmulTest, Matmul2) {
+//  std::cout << t1 << std::endl;
+//  std::cout << t2 << std::endl;
+//  std::cout << t1.transpose() << std::endl;
+//  std::cout << t2.transpose() << std::endl;
   matmul(t1.transpose(), t2.transpose(), t4);
-//  array([[13, 16],
-//        [40, 52]])
-//  std::cout << t4 << std::endl;
-  EXPECT_EQ(t4.data[0], 13.);
-  EXPECT_EQ(t4.data[1], 16.);
-  EXPECT_EQ(t4.data[2], 40.);
-  EXPECT_EQ(t4.data[3], 52.);
+  EXPECT_EQ(t4(0, 0), 16.);
+  EXPECT_EQ(t4(0, 1), 34.);
+  EXPECT_EQ(t4(1, 0), 22.);
+  EXPECT_EQ(t4(1, 1), 49.);
 }
 
 TEST_F(TensorMatmulTest, Matmul3) {
@@ -183,8 +207,9 @@ TEST_F(TensorMatmulTest, Matmul3) {
                        -0.00139399, -0.0737388, 0.0992229};
   Tensor ta = Tensor(Dim({3, 2}, 1), v);
 
-  std::vector<float> v2{-0.181541,  0.0185337, -0.0493364,
-                        0.136482, -0.01556, -0.0303789};
+  std::vector<float> v2{-0.181541,  0.0185337,
+                        -0.0493364, 0.136482,
+                        -0.01556, -0.0303789};
   Tensor tb = Tensor(Dim({3, 2}, 1), v2);
 
   std::vector<float> v3{1., 1.,
@@ -195,11 +220,13 @@ TEST_F(TensorMatmulTest, Matmul3) {
   t4.dim  = Dim({2, 3}, 1);
   t4.data = new float[6];
 
-  std::cout << tc.dim << " " << tb.dim << std::endl;
-  std::cout << "tc:\n" << tc << " \ntb.T\n" << tb.transpose() << std::endl;
-  matmul(tc, tb.transpose(), t4);
-  std::cout << "t4" << std::endl;
-  std::cout << t4 << std::endl;
+//  std::cout << tc.dim << " " << tb.dim << std::endl;
+//  std::cout << "tc:\n" << tc << std::endl;
+//  std::cout << "tb\n" << tb << std::endl;
+//  std::cout << "tb.T\n" << tb.transpose() << std::endl;
+//  matmul(tc, tb.transpose(), t4);
+//  std::cout << "t4" << std::endl;
+//  std::cout << t4 << std::endl;
 //  np.matmul(dEdy, b.transpose())
 //  array([[-0.045059 ,  0.0029737, -0.0797153],
 //         [-0.045059 ,  0.0029737, -0.0797153]])
@@ -217,14 +244,14 @@ TEST_F(TensorMatmulTest, Matmul3) {
 }
 
 
-TEST_F(TensorMatmulTest, BatchedMatmul3) {
-  matmul(t1_batched.transpose(), t2.transpose(), t4);
+//TEST_F(TensorMatmulTest, BatchedMatmul3) {
+//  matmul(t1_batched.transpose(), t2.transpose(), t4);
 //  array([[13, 16],
 //        [40, 52]])
 //  std::cout << t4 << std::endl;
-  EXPECT_EQ(t4.data[0], 26.);
-  EXPECT_EQ(t4.data[1], 32.);
-  EXPECT_EQ(t4.data[2], 80.);
-  EXPECT_EQ(t4.data[3], 104.);
-}
+//  EXPECT_EQ(t4.data[0], 26.);
+//  EXPECT_EQ(t4.data[1], 32.);
+//  EXPECT_EQ(t4.data[2], 80.);
+//  EXPECT_EQ(t4.data[3], 104.);
+//}
 
