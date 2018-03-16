@@ -9,6 +9,7 @@ add_library(rnnpp SHARED
 	expr.h expr.cc
 	error.h
 	graph.h
+	parameter.h
 	tensor.h tensor.cc
 	node.h node.cc
 	rnnpp.h rnnpp.cc
