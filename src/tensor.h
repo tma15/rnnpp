@@ -21,7 +21,6 @@ constexpr int adder(const std::vector<int> &shape, int k, int head, Args... tail
 template<typename sub_t> 
 struct Exp {
   inline const sub_t& self(void) const { return *static_cast<const sub_t*>(this); }
-
   inline sub_t* ptrself(void) { return static_cast<sub_t*>(this); }
 };
 
@@ -79,7 +78,7 @@ struct UnaryMapExp: public Exp< UnaryMapExp<op, src_t> > {
   const src_t& src;
   UnaryMapExp(const src_t &src): src(src) {}
 
-  inline float eval(int i, int b) const {
+  inline const float eval(int i, int b) const {
     return op::map(src.eval(i, b)); 
   }
 
@@ -88,9 +87,7 @@ struct UnaryMapExp: public Exp< UnaryMapExp<op, src_t> > {
 
 template <typename op, typename src_t>
 inline UnaryMapExp<op, src_t>
-UnaryF(const Exp<src_t> &src) {
-  return UnaryMapExp<op, src_t>(src.self());
-}
+UnaryF(const Exp<src_t> &src) { return UnaryMapExp<op, src_t>(src.self()); }
 
 template<typename src_t> 
 inline UnaryMapExp<internal::Negative, src_t>
@@ -126,15 +123,17 @@ struct Division {
 
 template<typename op, typename lhs_t, typename rhs_t> 
 struct BinaryMapExp: public Exp< BinaryMapExp<op, lhs_t, rhs_t> > {
-  const lhs_t& lhs;
-  const rhs_t& rhs;
-  BinaryMapExp(const lhs_t &lhs, const rhs_t &rhs): lhs(lhs), rhs(rhs) {}
+  const lhs_t& lhs_;
+  const rhs_t& rhs_;
+  BinaryMapExp(const lhs_t &lhs, const rhs_t &rhs): lhs_(lhs), rhs_(rhs) {}
 
-  inline float eval(int i, int b) const {
-    return op::map(lhs.eval(i, b), rhs.eval(i, b)); 
+  inline const float eval(int i, int b) const {
+    return op::map(lhs_.eval(i, b), rhs_.eval(i, b));
   }
 
-  int batch_size() const { return std::max(lhs.self().batch_size(), rhs.self().batch_size()); }
+  int batch_size() const { 
+    return std::max(lhs_.self().batch_size(), rhs_.self().batch_size());
+  }
 };
 
 template <typename op, typename lhs_t, typename rhs_t>
@@ -177,6 +176,19 @@ operator/ (const Exp<lhs_t> &lhs, const internal::Exp<rhs_t> &rhs) {
 
 } // internal
 
+class Scalar: public internal::Exp<Scalar> {
+  public:
+    Scalar(float v): data(v) {}
+
+    ~Scalar() {}
+
+    inline const float eval(int i, int b) const { return data; }
+
+    int batch_size() const { return 1; }
+
+  private:
+    float data;
+};
 
 
 class Tensor: public internal::Exp<Tensor> {
@@ -234,7 +246,7 @@ class Tensor: public internal::Exp<Tensor> {
       return *this;
     }
 
-    inline float eval(int i, int b) const { 
+    inline const float eval(int i, int b) const { 
       int skip = b * (dim.batch_size > 1) * dim.size();
       return data[i + skip];
     }
@@ -256,15 +268,38 @@ class Tensor: public internal::Exp<Tensor> {
     Dim dim;
 };
 
+template<typename lhs_t> 
+inline internal::BinaryMapExp<internal::Mult, lhs_t, Scalar>
+operator* (const internal::Exp<lhs_t> &lhs, float &v) {
+  Scalar s(v);
+  return internal::BinaryF<internal::Mult>(lhs, s);
+}
 
 
-void assign(const Tensor &src, Tensor &dest);
+template<typename lhs_t> 
+inline internal::BinaryMapExp<internal::Mult, lhs_t, Scalar>
+operator* (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
+  return internal::BinaryF<internal::Mult>(lhs, s);
+}
 
-void elementwise_add(const Tensor &src, Tensor &dest);
+template<typename lhs_t> 
+inline internal::BinaryMapExp<internal::Add, lhs_t, Scalar>
+operator+ (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
+  return internal::BinaryF<internal::Add>(lhs, s);
+}
 
-void elementwise_sub(const Tensor &src, Tensor &dest);
+template<typename lhs_t> 
+inline internal::BinaryMapExp<internal::Subtract, lhs_t, Scalar>
+operator- (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
+  return internal::BinaryF<internal::Subtract>(lhs, s);
+}
 
-void elementwise_square(Tensor &dest);
+template<typename lhs_t> 
+inline internal::BinaryMapExp<internal::Division, lhs_t, Scalar>
+operator/ (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
+  return internal::BinaryF<internal::Division>(lhs, s);
+}
+
 
 void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest);
 

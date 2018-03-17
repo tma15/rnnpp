@@ -22,7 +22,7 @@ std::ostream& operator<<(std::ostream &os, const Tensor &t) {
       for (int j=0; j < t.dim[1]-1; ++j) {
 //        os << t(i, j) << ",";
         int offset = i * t.dim.stride[0] + j * t.dim.stride[1] + b * t.dim.size();;
-        os << t.data[offset] << ",";
+        os << t.data[offset] << ", ";
       }
 //      os << t(i, t.dim.shape[1]-1) << "]";
       int offset = i * t.dim.stride[0] + (t.dim.shape[1]-1) * t.dim.stride[1] + b * t.dim.size();
@@ -59,41 +59,6 @@ Tensor Tensor::transpose() {
   dest.data = data;
   return dest;
 }
-
-//void assign(const Tensor &src, Tensor &dest) {
-//  for (int b=0; b < src.dim.batch_size; ++b) {
-//    for (int i=0; i < src.dim.size(); ++i) {
-//      dest.data[i + dest.dim.size() * b] = src.data[i + src.dim.size() * b];
-//    }
-//  }
-//}
-
-//void elementwise_add(const Tensor &src, Tensor &dest) {
-//  int max_b = std::max(src.dim.batch_size, dest.dim.batch_size);
-//  for (int b=0; b < max_b; ++b) {
-//    for (int i=0; i < dest.dim.size(); ++i) {
-//      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] -= src.data[i + src.dim.size() * b % src.dim.batch_size];
-//    }
-//  }
-//}
-
-//void elementwise_sub(const Tensor &src, Tensor &dest) {
-//  int max_b = std::max(src.dim.batch_size, dest.dim.batch_size);
-//  for (int b=0; b < max_b; ++b) {
-//    for (int i=0; i < dest.dim.size(); ++i) {
-//      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] -= src.data[i + src.dim.size() * b % src.dim.batch_size];
-//    }
-//  }
-//}
-
-//void elementwise_square(Tensor &dest) {
-//  for (int b=0; b < dest.dim.batch_size; ++b) {
-//    for (int i=0; i < dest.dim.size(); ++i) {
-//      dest.data[i + dest.dim.size() * b % dest.dim.batch_size] *= dest.data[i + dest.dim.size() * b % dest.dim.batch_size];
-//    }
-//  }
-//}
-
 
 // (M, N) = (M, K) x (K, N)
 void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest) {

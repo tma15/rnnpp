@@ -101,12 +101,14 @@ class TensorElementwiseTest: public ::testing::Test {
                             4., 5.};
       t4 = Tensor(Dim({3, 2}, 2), v4);
 
+      scalar = 3.f;
     }
 
     Tensor t1;
     Tensor t2;
     Tensor t3;
     Tensor t4;
+    float scalar;
 };
 
 TEST_F(TensorElementwiseTest, ElementAdd) {
@@ -120,6 +122,20 @@ TEST_F(TensorElementwiseTest, ElementAdd) {
   EXPECT_EQ(t(1, 1), 7.);
   EXPECT_EQ(t(2, 0), 9.);
   EXPECT_EQ(t(2, 1), 11.);
+
+  Tensor t3;
+  t3.dim = t1.dim;
+  t3.data = new float[t3.dim.size()];
+  t3 = Scalar(scalar) * t1;
+//  t3 = scalar * t1;
+//  t3 = t1 * scalar;
+  EXPECT_EQ(t3(0, 0), t1(0, 0) * scalar);
+  EXPECT_EQ(t3(0, 1), t1(0, 1) * scalar);
+  EXPECT_EQ(t3(1, 0), t1(1, 0) * scalar);
+  EXPECT_EQ(t3(1, 1), t1(1, 1) * scalar);
+  EXPECT_EQ(t3(2, 0), t1(2, 0) * scalar);
+  EXPECT_EQ(t3(2, 1), t1(2, 1) * scalar);
+
 }
 
 TEST_F(TensorElementwiseTest, BatchedElementAdd) {
