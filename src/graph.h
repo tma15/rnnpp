@@ -13,7 +13,12 @@ class Graph {
 
     const std::vector<Node*>& nodes() { return nodes_; }
 
+    Node* node(int i) { return nodes_[i]; }
+
+    const std::vector<int>& parameter_nodes() { return parameter_node_ids_; }
+
     void add_node(Node* node) { nodes_.push_back(node); }
+    void add_parameter_node(int i) { parameter_node_ids_.push_back(i); }
 
     std::vector<Tensor> outputs;
 
@@ -28,10 +33,13 @@ class Graph {
     //  y = a * b
     //  dE/da = dE/dy * dy/da
     //        = dE/dy * b
+    //  dE/db = dE/dy * dy/db
+    //        = dE/dy * a
     std::vector<Tensor> grads;
 
   private:
     std::vector<Node*> nodes_;
+    std::vector<int> parameter_node_ids_;
 
 };
 

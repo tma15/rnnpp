@@ -38,9 +38,34 @@ Expression squared_distance(const Expression &a, const Expression &b) {
   int i = a.g_->nodes().size();
   Node* node = new SquaredDistance({a.id(), b.id()});
   a.g_->add_node(node);
-
   Expression e(a.g_, i);
   return e;
 }
+
+Expression sum(const Expression &x) {
+  int i = x.g_->nodes().size();
+  Node* node = new Sum({x.id()});
+  x.g_->add_node(node);
+  Expression e(x.g_, i);
+  return e;
+}
+
+
+Expression tanh(const Expression &x) {
+  int i = x.g_->nodes().size();
+  Node* node = new TanhNode({x.id()});
+  x.g_->add_node(node);
+  Expression e(x.g_, i);
+  return e;
+}
+
+Expression sigmoid(const Expression &x) {
+  int i = x.g_->nodes().size();
+  Node* node = new SigmoidNode({x.id()});
+  x.g_->add_node(node);
+  Expression e(x.g_, i);
+  return e;
+}
+
 
 } // namespace rnnpp

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "dim.h"
+#include "parameter.h"
 #include "tensor.h"
 
 namespace rnnpp {
@@ -19,7 +20,8 @@ class Node {
 
     virtual void forward(const std::vector<Tensor>& inputs, Tensor &output)=0;
 
-    virtual void backward(const std::vector<Tensor>& inputs, Tensor &output, int i)=0;
+    virtual void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi)=0;
 
     std::vector<int> args;
 
@@ -42,7 +44,9 @@ class InputNode: public Node {
     ~InputNode() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
-    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi){};
 
     std::string type() { return "InputNode"; }
 
@@ -55,29 +59,90 @@ class ParameterNode: public Node {
   public:
     ParameterNode(): Node() {}
 
-    ParameterNode(std::initializer_list<int> d): Node() {
-      dim = Dim(d);
-      int n = 1;
-      for (auto it=d.begin(); it != d.end(); ++it) {
-        n *= *it;
-      }
-
-      data_ = std::vector<float>(n);
-      for (int i=0; i < n; ++i) {
-        data_[i] = 1.;
-      }
+    ParameterNode(Parameter p): Node() {
+      param = p;
+      dim = p.data_.dim;
     }
 
     ~ParameterNode() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
-    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi){};
+
+    Parameter* get_param() { return &param; }
+
+    void add_gradient(const Tensor &dEdy) {
+      for (int i=0; i < dEdy.dim.size(); ++i) {
+        param.grad_.data[i] += dEdy.data[i];
+      }
+    }
 
     std::string type() { return "ParameterNode"; }
 
   private:
-    std::vector<float> data_;
-//    Tensor tensor;
+    Parameter param;
+};
+
+/**
+ * y = x^2
+ * dEdx = dEdy * dydx
+ *      = dEdy * 2 * x
+ */
+class Square: public Node {
+  public:
+    Square(): Node() {}
+
+    Square(std::initializer_list<int> a): Node(a) {}
+
+    ~Square(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "Square"; }
+};
+
+/**
+ * y = a + b + c
+ * dEda = dEdy * dyda = dEdy
+ * dEdb = dEdy * dydb = dEdy
+ * dEdc = dEdy * dydc = dEdy
+ */
+class Sum: public Node {
+  public:
+    Sum(): Node() {}
+
+    Sum(std::initializer_list<int> a): Node(a) {}
+
+    ~Sum(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "Sum"; }
+};
+
+
+class Add: public Node {
+  public:
+    Add(): Node() {}
+
+    Add(std::initializer_list<int> a): Node(a) {}
+
+    ~Add(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "Add"; }
 };
 
 
@@ -88,8 +153,11 @@ class Mult: public Node {
     Mult(std::initializer_list<int> a): Node(a) {}
 
     ~Mult(){}
+
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
-    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
 
     std::string type() { return "Mult"; }
 };
@@ -104,11 +172,45 @@ class SquaredDistance: public Node {
     ~SquaredDistance(){}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output);
-    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
 
     std::string type() { return "SquaredDistance"; }
 };
 
+
+class TanhNode: public Node {
+  public:
+    TanhNode(): Node() {}
+
+    TanhNode(std::initializer_list<int> a): Node(a) {}
+
+    ~TanhNode() {}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "tanh"; }
+};
+
+class SigmoidNode: public Node {
+  public:
+    SigmoidNode(): Node() {}
+
+    SigmoidNode(std::initializer_list<int> a): Node(a) {}
+
+    ~SigmoidNode() {}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "sigmoid"; }
+};
 
 
 class Embed: public Node {
@@ -118,7 +220,9 @@ class Embed: public Node {
     ~Embed() {}
 
     void forward(const std::vector<Tensor>& inputs, Tensor &output) {}
-    void backward(const std::vector<Tensor>& inputs, Tensor &output, int i){};
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
 
     std::string type() { return "Embed"; }
 };

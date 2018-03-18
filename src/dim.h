@@ -32,7 +32,7 @@ class Dim {
       for (int i=0; i < d.shape.size()-1; ++i) {
         os << d.shape[i] << ",";
       }
-      os << d.shape[d.shape.size()-1] << ")";
+      os << d.shape.back() << ")";
       return os;
     };
 
@@ -56,7 +56,6 @@ class Dim {
         }
       }
     }
-
 
     std::vector<int> shape;
 

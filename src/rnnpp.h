@@ -7,7 +7,6 @@
 
 namespace rnnpp {
 
-
 Expression input(Graph &g, std::vector<float> &value);
 
 Expression input(Graph &g, const Dim &dim, std::vector<float> &value);
@@ -15,6 +14,12 @@ Expression input(Graph &g, const Dim &dim, std::vector<float> &value);
 Expression parameter(Graph &g, const Parameter& p);
 
 Expression squared_distance(const Expression &a, const Expression &b);
+
+Expression sum(const Expression &x);
+
+Expression tanh(const Expression &x);
+
+Expression sigmoid(const Expression &x);
 
 
 } // namespace rnnpp

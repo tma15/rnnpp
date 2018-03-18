@@ -268,13 +268,6 @@ class Tensor: public internal::Exp<Tensor> {
     Dim dim;
 };
 
-template<typename lhs_t> 
-inline internal::BinaryMapExp<internal::Mult, lhs_t, Scalar>
-operator* (const internal::Exp<lhs_t> &lhs, float &v) {
-  Scalar s(v);
-  return internal::BinaryF<internal::Mult>(lhs, s);
-}
-
 
 template<typename lhs_t> 
 inline internal::BinaryMapExp<internal::Mult, lhs_t, Scalar>

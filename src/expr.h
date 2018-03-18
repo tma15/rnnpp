@@ -14,7 +14,9 @@ class Expression {
 
     ~Expression(){}
 
-    void forward();
+    const Tensor& forward();
+
+    void backward();
 
     Graph* graph() { return g_; };
 
@@ -26,7 +28,9 @@ class Expression {
     int id_;
 };
 
-//Expression mult(const Expression &a, const Expression &b);
+float as_scalar(const Tensor& e);
+
+Expression operator+(const Expression &a, const Expression &b);
 Expression operator*(const Expression &a, const Expression &b);
 
 

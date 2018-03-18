@@ -127,8 +127,7 @@ TEST_F(TensorElementwiseTest, ElementAdd) {
   t3.dim = t1.dim;
   t3.data = new float[t3.dim.size()];
   t3 = Scalar(scalar) * t1;
-//  t3 = scalar * t1;
-//  t3 = t1 * scalar;
+//  t3 = t1 * Scalar(scalar);
   EXPECT_EQ(t3(0, 0), t1(0, 0) * scalar);
   EXPECT_EQ(t3(0, 1), t1(0, 1) * scalar);
   EXPECT_EQ(t3(1, 0), t1(1, 0) * scalar);
