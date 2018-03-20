@@ -85,6 +85,16 @@ class ParameterNode: public Node {
     Parameter param;
 };
 
+//class LookupNode: public ParameterNode {
+//  public:
+//    LookupNode(): ParameterNode() {}
+
+//    LookupNode(LookupParameter p): ParameterNode() {
+//      param = p;
+//      dim = p.data_.dim;
+//    }
+//};
+
 /**
  * y = x^2
  * dEdx = dEdy * dydx
