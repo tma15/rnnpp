@@ -13,7 +13,7 @@ void InputNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
 
 void ParameterNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
   output.dim = dim;
-  output.data = param.data_.data;
+  output.data = param.value.data;
 //  std::cout << "ParameterNode::forward dim:" << dim << std::endl;
 //  std::cout << output << std::endl;
 //  std::cout << param.data_.dim.shape.size() << std::endl;
@@ -154,11 +154,11 @@ void TanhNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
 
   output = (exp(inputs[0]) - exp(-inputs[0])) / (exp(inputs[0]) + exp(-inputs[0]));
 
-  std::cout << "Tanh:" << std::endl;
-  std::cout << "x:" << std::endl;
-  std::cout << inputs[0] << std::endl;
-  std::cout << "y:" << std::endl;
-  std::cout << output << std::endl;
+//  std::cout << "Tanh:" << std::endl;
+//  std::cout << "x:" << std::endl;
+//  std::cout << inputs[0] << std::endl;
+//  std::cout << "y:" << std::endl;
+//  std::cout << output << std::endl;
 }
 
 void TanhNode::backward(const std::vector<Tensor> &inputs, const Tensor &output,
@@ -168,8 +168,8 @@ void TanhNode::backward(const std::vector<Tensor> &inputs, const Tensor &output,
   dEdxi.data = new float[k];
 
   dEdxi = dEdy * (Scalar(1.) - (output * output));
-  std::cout << type() << std::endl;
-  std::cout << "dEdx: " << dEdxi.dim << ":\n" << dEdxi << std::endl;
+//  std::cout << type() << std::endl;
+//  std::cout << "dEdx: " << dEdxi.dim << ":\n" << dEdxi << std::endl;
 }
 
 void SigmoidNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
@@ -213,7 +213,7 @@ void SquaredDistance::forward(const std::vector<Tensor> &inputs, Tensor &output)
   const Tensor &y2 = inputs[1];
 
   output = square(y1 - y2);
-  std::cout << "y1:" << y1 << " y2:" << y2 << std::endl;
+//  std::cout << "y1:" << y1 << " y2:" << y2 << std::endl;
 //  std::cout << "SquaredDistance:" << output.dim << std::endl;
 //  std::cout << output << std::endl;
 }

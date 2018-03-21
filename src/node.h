@@ -61,7 +61,7 @@ class ParameterNode: public Node {
 
     ParameterNode(Parameter p): Node() {
       param = p;
-      dim = p.data_.dim;
+      dim = p.value.dim;
     }
 
     ~ParameterNode() {}
@@ -75,7 +75,7 @@ class ParameterNode: public Node {
 
     void add_gradient(const Tensor &dEdy) {
       for (int i=0; i < dEdy.dim.size(); ++i) {
-        param.grad_.data[i] += dEdy.data[i];
+        param.grad.data[i] += dEdy.data[i];
       }
     }
 

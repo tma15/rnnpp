@@ -11,16 +11,16 @@ class Parameter {
     Parameter() {}
 
     Parameter(const Dim &dim) {
-      data_.data = new float[dim.size()];
-      data_.dim = dim;
-      grad_.data = new float[dim.size()];
-      grad_.dim = dim;
+      value.data = new float[dim.size()];
+      value.dim = dim;
+      grad.data = new float[dim.size()];
+      grad.dim = dim;
     }
 
     ~Parameter() {}
 
-    Tensor data_;
-    Tensor grad_;
+    Tensor value;
+    Tensor grad;
 };
 
 } // namespace rnnpp
