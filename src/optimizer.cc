@@ -27,14 +27,8 @@ Parameter Optimizer::add_parameter(const std::initializer_list<int> &d) {
 
 void Optimizer::update() {
   for (int i=0; i < parameters_.size(); ++i) {
-//    std::cout << "Grad " << i << " " << parameters_[i]->grad_.dim << std::endl;
-//    std::cout << parameters_[i]->grad_ << std::endl;
-    for (int j=0; j < parameters_[i]->data_.dim.size(); ++j) {
-      parameters_[i]->data_.data[j] -= 0.1 * parameters_[i]->grad_.data[j];
-    }
-    for (int j=0; j < parameters_[i]->grad_.dim.size(); ++j) {
-      parameters_[i]->grad_.data[j] = 0.;
-    }
+    parameters_[i]->value -= Scalar(0.1) * parameters_[i]->grad;
+    parameters_[i]->grad = Scalar(0.);
   }
 }
 

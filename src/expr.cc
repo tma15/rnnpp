@@ -33,9 +33,7 @@ void Expression::backward() {
     g_->grads[i].data = new float[k]; 
   }
 
-  for (int i=0; i < g_->grads.back().dim.size(); ++i) {
-    g_->grads.back().data[i] = 1.;
-  }
+  g_->grads.back() = Scalar(1.);
 
   for (int i=num_nodes-1; i >= 0; --i) {
     Node* node = g_->nodes()[i];

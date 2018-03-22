@@ -74,9 +74,7 @@ class ParameterNode: public Node {
     Parameter* get_param() { return &param; }
 
     void add_gradient(const Tensor &dEdy) {
-      for (int i=0; i < dEdy.dim.size(); ++i) {
-        param.grad.data[i] += dEdy.data[i];
-      }
+      param.grad += dEdy;
     }
 
     std::string type() { return "ParameterNode"; }
