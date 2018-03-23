@@ -6,6 +6,14 @@
 
 namespace rnnpp {
 
+class Initializer {
+  public:
+    Initializer() {}
+    ~Initializer() {}
+
+    void init(Tensor &t);
+};
+
 class Parameter {
   public:
     Parameter() {}
@@ -21,6 +29,20 @@ class Parameter {
 
     Tensor value;
     Tensor grad;
+};
+
+class LookupParameter {
+  public:
+    LookupParameter() {}
+
+    LookupParameter(const Dim &dim);
+
+    ~LookupParameter() {}
+
+    Tensor all_values;
+
+    std::vector<Tensor> values;
+    std::vector<Tensor> grads;
 };
 
 } // namespace rnnpp

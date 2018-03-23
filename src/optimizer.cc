@@ -10,16 +10,9 @@ namespace rnnpp {
 
 Parameter Optimizer::add_parameter(const std::initializer_list<int> &d) {
   Parameter p(d);
-  std::random_device rnd;     // 非決定的な乱数生成器でシード生成機を生成
-  std::mt19937 mt(rnd()); //
-  std::normal_distribution<> norm(0.0, 0.1);       // 平均50, 分散値10の正規分布
-  for (int i=0; i < p.data_.dim.size(); ++i) {
-    p.data_.data[i] = norm(mt);
-  }
-
-  for (int i=0; i < p.grad_.dim.size(); ++i) {
-    p.grad_.data[i] = 0.;
-  }
+  Initializer initializer;
+  initializer.init(p.value);
+  p.grad = Scalar(0.);
 
   parameters_.push_back(&p);
   return p;
