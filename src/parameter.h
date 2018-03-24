@@ -40,6 +40,7 @@ class LookupParameter {
     ~LookupParameter() {}
 
     Tensor all_values;
+    Tensor all_grads;
 
     std::vector<Tensor> values;
     std::vector<Tensor> grads;
