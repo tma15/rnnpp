@@ -15,10 +15,14 @@ class Optimizer {
 
     Parameter add_parameter(const std::initializer_list<int> &d);
 
+    LookupParameter add_lookup_parameter(const std::initializer_list<int> &d);
+
     void update();
 
   protected:
     std::vector<Parameter*> parameters_;
+
+    std::vector<LookupParameter*> lparameters_;
 };
 
 } // namespace rnnpp
