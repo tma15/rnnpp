@@ -14,9 +14,23 @@ void InputNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
 void ParameterNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
   output.dim = dim;
   output.data = param.value.data;
-//  std::cout << "ParameterNode::forward dim:" << dim << std::endl;
+}
+
+void LookupNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
+  output.dim = Dim({1, param.values[index].dim.shape[1]}, 1);
+  output.data = param.values[index].data;
+
+//  std::cout << param.all_values << std::endl;
 //  std::cout << output << std::endl;
-//  std::cout << param.data_.dim.shape.size() << std::endl;
+//  std::cout << "fin " << std::endl;
+}
+
+void LookupNode::backward(const std::vector<Tensor> &inputs, const Tensor &output,
+    const Tensor &dEdy, int ii, Tensor &dEdxi) {
+  dEdxi.dim = Dim({1, param.values[index].dim.shape[1]}, 1);
+  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+  dEdxi.data = new float[k];
+  dEdxi = dEdy;
 }
 
 //void Square::forward(const std::vector<Tensor> &inputs, Tensor &output) {
@@ -40,21 +54,21 @@ void ParameterNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
 //}
 
 void Sum::forward(const std::vector<Tensor> &inputs, Tensor &output) {
-  output.dim = inputs[0].dim;
-  int k = output.dim.size() * output.dim.batch_size;
-  output.data = new float[k];
+//  output.dim = Dim({1, 1});
+//  int k = output.dim.size() * output.dim.batch_size;
+//  output.data = new float[k];
 
-  for (int i=0; i < inputs.size(); ++i) {
-    output += inputs[i];
-  }
+//  for (int i=0; i < inputs.size(); ++i) {
+//    output += inputs[i];
+//  }
 }
 
 void Sum::backward(const std::vector<Tensor> &inputs, const Tensor &output,
     const Tensor &dEdy, int ii, Tensor &dEdxi) {
-  dEdxi.dim = Dim(inputs[ii].dim.shape, 1);
-  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
-  dEdxi.data = new float[k];
-  dEdxi = dEdy;
+//  dEdxi.dim = Dim(inputs[ii].dim.shape, 1);
+//  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+//  dEdxi.data = new float[k];
+//  dEdxi = dEdy;
 }
 
 

@@ -55,11 +55,17 @@ class InputNode: public Node {
 };
 
 
-class ParameterNode: public Node {
+class ParameterNodeBase: public Node {
   public:
-    ParameterNode(): Node() {}
+    virtual void add_gradient(const Tensor &dEdy)=0;
+    std::string type() { return "ParameterNodeBase"; }
+};
 
-    ParameterNode(Parameter p): Node() {
+class ParameterNode: public ParameterNodeBase {
+  public:
+    ParameterNode(): ParameterNodeBase() {}
+
+    ParameterNode(Parameter p): ParameterNodeBase() {
       param = p;
       dim = p.value.dim;
     }
@@ -83,15 +89,29 @@ class ParameterNode: public Node {
     Parameter param;
 };
 
-//class LookupNode: public ParameterNode {
-//  public:
-//    LookupNode(): ParameterNode() {}
+class LookupNode: public ParameterNodeBase {
+  public:
+    LookupNode(): ParameterNodeBase() {}
 
-//    LookupNode(LookupParameter p): ParameterNode() {
-//      param = p;
-//      dim = p.data_.dim;
-//    }
-//};
+    LookupNode(LookupParameter p, int index): ParameterNodeBase(), index(index) {
+      param = p;
+      dim = p.all_values.dim;
+    }
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    void add_gradient(const Tensor &dEdy) {
+      std::cout << "add gradient at " << index << std::endl;
+      param.grads[index] += dEdy;
+    }
+
+  private:
+    LookupParameter param;
+    int index;
+};
 
 /**
  * y = x^2
