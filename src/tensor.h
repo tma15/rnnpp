@@ -294,6 +294,9 @@ operator/ (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
 }
 
 
+void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int> &stride,
+    std::vector<int> &cur, int pos, const Tensor &t, bool newline_flag,
+    int indent);
 void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest);
 
 } // namespace rnnpp
