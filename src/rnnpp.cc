@@ -33,6 +33,15 @@ Expression parameter(Graph &g, const Parameter &p) {
   return e;
 }
 
+Expression lookup(Graph &g, const LookupParameter &p, int index) {
+  int i = g.nodes().size();
+  Node* node = new LookupNode(p, index);
+  g.add_node(node);
+  g.add_parameter_node(i);
+  Expression e(&g, i);
+  return e;
+}
+
 
 Expression squared_distance(const Expression &a, const Expression &b) {
   int i = a.g_->nodes().size();

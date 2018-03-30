@@ -11,7 +11,9 @@ Expression input(Graph &g, std::vector<float> &value);
 
 Expression input(Graph &g, const Dim &dim, std::vector<float> &value);
 
-Expression parameter(Graph &g, const Parameter& p);
+Expression parameter(Graph &g, const Parameter &p);
+
+Expression lookup(Graph &g, const LookupParameter &lp, int index);
 
 Expression squared_distance(const Expression &a, const Expression &b);
 
