@@ -6,39 +6,6 @@
 
 namespace rnnpp {
 
-//std::ostream& operator<<(std::ostream &os, const Tensor &t) {
-//  RNNPP_CHECK(t.dim.shape.size() == 2, "Tensor must be two dimension");
-
-  //   offset = i * stride[0] + j * stride[1] + k * stride[2] + ...
-
-//  int size = t.dim.size();
-//  for (int b=0; b < t.dim.batch_size; ++b) {
-//    os << "[";
-//    for (int i=0; i < t.dim[0]; ++i) {
-//      if (i > 0) {
-//        std::cout << " ";
-//      }
-//      os << "[";
-//      for (int j=0; j < t.dim[1]-1; ++j) {
-//        os << t(i, j) << ",";
-//        int offset = i * t.dim.stride[0] + j * t.dim.stride[1] + b * t.dim.size();;
-//        os << t.data[offset] << ", ";
-//      }
-//      os << t(i, t.dim.shape[1]-1) << "]";
-//      int offset = i * t.dim.stride[0] + (t.dim.shape[1]-1) * t.dim.stride[1] + b * t.dim.size();
-//      os << t.data[offset] << "]";
-//      if (i < t.dim[0]-1) {
-//        os << "," << std::endl;
-//      }
-//    }
-//    os << "]";
-//    if (b != t.dim.batch_size -1) {
-//      os << "," << std::endl;
-//    }
-//  }
-//  return os;
-//}
-
 Tensor Tensor::transpose() {
   Tensor dest;
 
@@ -58,6 +25,72 @@ Tensor Tensor::transpose() {
 
   dest.data = data;
   return dest;
+}
+
+
+void _sum(std::vector<int> &dst_index, 
+    int pos, int axis, const Tensor &src, Tensor &dst) {
+
+  if (pos == dst.dim.shape.size()-1) {
+    for (dst_index[pos]=0; dst_index[pos] < dst.dim.shape[pos]; dst_index[pos] += 1) {
+
+//      std::cout << "dst index:";
+      int offset1 = 0;
+      for (int k=0; k < dst_index.size(); ++k) {
+//        std::cout << dst_index[k] << ",";
+        offset1 += dst_index[k] * dst.dim.stride[k];
+      }
+//      std::cout << std::endl;
+//      std::cout << "offset1:" << offset1 << std::endl;
+
+      int j = 0;
+//      std::cout << "src index:";
+      int offset2base = 0;
+      for (int k=0; k < src.dim.stride.size(); ++k) {
+        if (k==axis) {
+//          std::cout << "j" << ",";
+          continue;
+        }
+//        std::cout << dst_index[j] << "(" << src.dim.stride[k] << "),";
+        offset2base += dst_index[j] * src.dim.stride[k];
+        j += 1;
+      }
+//      std::cout << std::endl;
+//      std::cout << "offset2base:" << offset2base << std::endl;
+
+      int ss = src.dim.size();
+      int ds = dst.dim.size();
+      for (int b=0; b < src.batch_size(); ++b) {
+        dst.data[offset1 + b * ds] = 0;
+        for (int i=0; i < src.dim.shape[axis]; ++i) {
+          int offset2 = offset2base + i * src.dim.stride[axis];
+          dst.data[offset1 + b * ds] += src.data[offset2 + b * ss];
+  //        std::cout << " += src[" << offset2 << "] = " << src.data[offset2] << std::endl;
+        }
+  //      std::cout << "sum(offset1=" << offset1 << ") = " << dst.data[offset1] << std::endl;
+  //      std::cout << std::endl;
+  //      }
+      }
+    }
+  } else {
+    for (dst_index[pos]=0; dst_index[pos] < dst.dim.shape[pos]; dst_index[pos] += 1) {
+      _sum(dst_index, pos+1, axis, src, dst);
+    }
+  }
+}
+
+
+void sum(const Tensor &src, Tensor &dst, int axis) {
+  std::vector<int> dst_index(dst.dim.shape.size(), 0);
+  _sum(dst_index, 0, axis, src, dst);
+}
+
+float sum(const Tensor &src) {
+  float ret;
+  for (int i=0; i < src.dim.size(); ++i) {
+    ret += src.data[i];
+  }
+  return ret;
 }
 
 // (M, N) = (M, K) x (K, N)
@@ -103,7 +136,7 @@ void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest) {
 }
 
 void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int> &stride,
-    std::vector<int> &cur, int pos, const Tensor &t, int indent, bool flag) {
+    std::vector<int> &cur, int pos, const Tensor &t, int indent, bool flag, int b) {
   if (pos == shape.size()-1) {
 
     os << "[";
@@ -116,14 +149,16 @@ void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int
         offset += cur[k] * stride[k];
       }
 //      std::cout << cur.back() << ":";
-      os << t.data[offset] << ",";
+//      os << t.data[offset] << ",";
+      os << t.data[offset + b * t.dim.size()] << ",";
     }
 
     int offset = 0;
     for (int k=0; k < cur.size(); ++k) {
       offset += cur[k] * stride[k];
     }
-    os << t.data[offset] << "]";
+//    os << t.data[offset] << "]";
+    os << t.data[offset + b * t.dim.size()] << "]";
     if (flag) {
 //      std::cout << "newline:" ;
       os << "," << std::endl;
@@ -139,9 +174,9 @@ void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int
 
     os << "[";
     for (cur[pos]=0; cur[pos] < shape[pos]-1; cur[pos] += 1) {
-      nest(os, shape, stride, cur, pos+1, t, indent+1, true);
+      nest(os, shape, stride, cur, pos+1, t, indent+1, true, b);
     }
-    nest(os, shape, stride, cur, pos+1, t, indent+1, false);
+    nest(os, shape, stride, cur, pos+1, t, indent+1, false, b);
     os << "],";
     if (flag) {
       os << std::endl;
@@ -150,25 +185,14 @@ void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int
 }
 
 std::ostream& operator<<(std::ostream &os, const Tensor &t) {
-//void rec_loop(const Tensor &t) {
-//    std::cout << "shape:";
-//    for (int k=0; k < t.dim.shape.size()-1; ++k) {
-//      std::cout << t.dim.shape[k] << ",";
-//    }
-//    std::cout << t.dim.shape.back() << std::endl;
-
-//    std::cout << "stride:";
-//    for (int k=0; k < t.dim.stride.size()-1; ++k) {
-//      std::cout << t.dim.stride[k] << ",";
-//    }
-//    std::cout << t.dim.stride.back() << std::endl;
-
   std::vector<int> cur(t.dim.shape.size(), 0);
   int level = 0;
   int indent = 0;
   bool newline_flag = false;
-  nest(os, t.dim.shape, t.dim.stride, cur, level, t, indent, newline_flag);
-//  os << std::endl;
+
+  for (int b=0; b < t.batch_size(); ++b) {
+    nest(os, t.dim.shape, t.dim.stride, cur, level, t, indent, newline_flag, b);
+  }
   return os;
 }
 

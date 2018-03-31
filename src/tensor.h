@@ -61,6 +61,7 @@ struct ExpEngine {
   }
 };
 
+
 struct Negative {
   inline static float map(float x) { return -x; }
 };
@@ -101,9 +102,7 @@ template<typename src_t>
 inline UnaryMapExp<internal::Exponential, src_t>
 exp(const Exp<src_t> &src) { return UnaryF<internal::Exponential>(src); }
 
-struct MultTo {
-  inline static float map(float &a, float b) { return a *= b; }
-};
+
 
 struct Mult {
   inline static float map(float a, float b) { return a * b; }
@@ -143,9 +142,15 @@ BinaryF(const Exp<lhs_t> &lhs, const Exp<rhs_t> &rhs) {
 }
 
 template<typename lhs_t, typename rhs_t> 
-inline BinaryMapExp<internal::MultTo, lhs_t, rhs_t>
+inline BinaryMapExp<internal::MultiplyTo, lhs_t, rhs_t>
 operator*= (const Exp<lhs_t> &lhs, const internal::Exp<rhs_t> &rhs) {
-  return BinaryF<internal::MultTo>(lhs, rhs);
+  return BinaryF<internal::MultiplyTo>(lhs, rhs);
+}
+
+template<typename lhs_t, typename rhs_t> 
+inline BinaryMapExp<internal::AddTo, lhs_t, rhs_t>
+operator*= (const Exp<lhs_t> &lhs, const internal::Exp<rhs_t> &rhs) {
+  return BinaryF<internal::AddTo>(lhs, rhs);
 }
 
 
@@ -175,6 +180,7 @@ operator/ (const Exp<lhs_t> &lhs, const internal::Exp<rhs_t> &rhs) {
 
 
 } // internal
+
 
 class Scalar: public internal::Exp<Scalar> {
   public:
@@ -296,10 +302,19 @@ operator/ (const internal::Exp<lhs_t> &lhs, const Scalar &s) {
 
 void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int> &stride,
     std::vector<int> &cur, int pos, const Tensor &t, bool newline_flag,
-    int indent);
+    int indent, int b);
+
+
 void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest);
 
+
+void _sum(std::vector<int> &dst_index, int pos, int axis, const Tensor &src, Tensor &dst);
+// dst_{i, k} = sum_j src_{i, j, k}
+
+void sum(const Tensor &src, Tensor &dst, int axis);
+
 } // namespace rnnpp
+
 
 
 
