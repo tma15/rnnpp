@@ -42,9 +42,6 @@ TEST_F(TensorAccessTest, Transpose0) {
   Tensor t2 = t1.transpose();
   EXPECT_EQ(t2.dim[0], 2);
   EXPECT_EQ(t2.dim[1], 3);
-
-//  std::cout << "t1:\n" << t1 << std::endl;
-//  std::cout << "t2:\n" << t2 << std::endl;
 }
 
 
@@ -61,7 +58,6 @@ TEST_F(TensorAccessTest, Transpose1) {
   EXPECT_EQ(t2.dim[3], 2);
 }
 
-
 TEST_F(TensorAccessTest, Transpose2) {
   Tensor t1;
   t1.dim = Dim({2, 1, 5, 3, 4});
@@ -72,7 +68,6 @@ TEST_F(TensorAccessTest, Transpose2) {
   EXPECT_EQ(t2.dim[3], 1);
   EXPECT_EQ(t2.dim[4], 2);
 }
-
 
 class TensorElementwiseTest: public ::testing::Test {
   protected:
@@ -110,6 +105,55 @@ class TensorElementwiseTest: public ::testing::Test {
     Tensor t4;
     float scalar;
 };
+
+TEST_F(TensorElementwiseTest, Sum) {
+  std::vector<float> v1{0., 1.,
+                        2., 3.,
+                        4., 5.,
+                        6., 7.};
+  Tensor t = Tensor(Dim({2, 2, 2}), v1);
+
+//  std::cout << t << std::endl;
+  Tensor dst;
+  dst.dim = Dim({2, 2});
+  dst.data = new float[dst.dim.size()];
+  sum(t, dst, 1);
+
+//  array([[ 2,  4],
+//         [10, 12]])
+  EXPECT_EQ(dst(0, 0), 2.);
+  EXPECT_EQ(dst(0, 1), 4.);
+  EXPECT_EQ(dst(1, 0), 10.);
+  EXPECT_EQ(dst(1, 1), 12.);
+//  std::cout << "ret:" << dst.dim << std::endl;
+//  std::cout << dst << std::endl;
+}
+
+TEST_F(TensorElementwiseTest, BatchSum) {
+  std::vector<float> v1{0., 1.,
+                        2., 3.,
+                        4., 5.,
+                        6., 7.};
+  Tensor t = Tensor(Dim({2, 2}, 2), v1);
+
+  std::cout << "src" << std::endl;
+  std::cout << t << std::endl;
+
+//  std::cout << t << std::endl;
+  Tensor dst;
+  dst.dim = Dim({2}, 2);
+  dst.data = new float[dst.dim.size()];
+  sum(t, dst, 1);
+
+//  array([[ 2,  4],
+//         [10, 12]])
+//  EXPECT_EQ(dst(0, 0), 2.);
+//  EXPECT_EQ(dst(0, 1), 4.);
+//  EXPECT_EQ(dst(1, 0), 10.);
+//  EXPECT_EQ(dst(1, 1), 12.);
+  std::cout << "ret:" << dst.dim << std::endl;
+  std::cout << dst << std::endl;
+}
 
 TEST_F(TensorElementwiseTest, ElementAdd) {
   Tensor t;
