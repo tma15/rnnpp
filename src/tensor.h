@@ -268,6 +268,8 @@ class Tensor: public internal::Exp<Tensor> {
 
     Tensor transpose();
 
+    Tensor batch_elem(int bid);
+
     int batch_size() const { return dim.batch_size; }
 
     float *data;

@@ -153,7 +153,35 @@ TEST_F(TensorElementwiseTest, BatchSum) {
 //  EXPECT_EQ(dst(1, 1), 12.);
   std::cout << "ret:" << dst.dim << std::endl;
   std::cout << dst << std::endl;
+  Tensor b1 = dst.batch_elem(0);
+  EXPECT_EQ(b1(0), 1.);
+  EXPECT_EQ(b1(1), 5.);
+
+  Tensor b2 = dst.batch_elem(1);
+  EXPECT_EQ(b2(0), 9.);
+  EXPECT_EQ(b2(1), 13.);
 }
+
+TEST_F(TensorElementwiseTest, BatchSumElem) {
+  std::vector<float> v1{0., 1.,
+                        2., 3.,
+                        4., 5.,
+                        6., 7.};
+  Tensor t = Tensor(Dim({2, 2}, 2), v1);
+  Tensor dst;
+  dst.dim = Dim({1}, 2);
+  dst.data = new float[dst.dim.size()];
+  sum(t, dst, -1);
+//  std::cout << t << std::endl;
+//  std::cout << "ret:" << dst.dim << std::endl;
+//  std::cout << dst << std::endl;
+
+  Tensor b1 = dst.batch_elem(0);
+  EXPECT_EQ(b1(0), 6.);
+  Tensor b2 = dst.batch_elem(1);
+  EXPECT_EQ(b2(0), 22.);
+}
+
 
 TEST_F(TensorElementwiseTest, ElementAdd) {
   Tensor t;

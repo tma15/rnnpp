@@ -28,6 +28,14 @@ Tensor Tensor::transpose() {
 }
 
 
+Tensor Tensor::batch_elem(int bid) {
+  Tensor t;
+  t.dim = Dim(dim.shape);
+  t.data = data + bid * dim.size();
+  return t;
+}
+
+
 void _sum(std::vector<int> &dst_index, 
     int pos, int axis, const Tensor &src, Tensor &dst) {
 
