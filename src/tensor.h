@@ -51,7 +51,7 @@ struct ExpEngine {
   inline static void run(int size, Exp<dst_t> *dst, const Exp<src_t> &src) {
     dst_t dst_ = dst->self();
     src_t src_ = src.self();
-    int max_b = src_.batch_size();
+    int max_b = std::max(dst_.batch_size(), src_.batch_size());
 
     for (int b=0; b < max_b; ++b) {
       for (int i=0; i < size; ++i) {
