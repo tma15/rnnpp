@@ -8,10 +8,8 @@ namespace rnnpp {
 const Tensor& Expression::forward() {
   g_->outputs.resize(g_->nodes().size());
 
-//  std::cout << "forward!" << std::endl;
   for (int i=0; i <= id_; ++i) {
     Node* node = g_->nodes()[i];
-//    std::cout << "node:" << i << " " << node->type() << std::endl;
 
     std::vector<Tensor> inputs(node->args.size());
     for (int j=0; j < node->args.size(); ++j) {
@@ -25,7 +23,6 @@ const Tensor& Expression::forward() {
 void Expression::backward() {
   int num_nodes = g_->nodes().size();
   g_->grads.resize(num_nodes);
-//  std::cout << "backward node size:" << num_nodes << std::endl;
 
   for (int i=0; i < num_nodes; ++i) {
     int k = g_->outputs[i].dim.size();
@@ -50,19 +47,12 @@ void Expression::backward() {
       Tensor &dEdx = g_->grads[node->args[j]];
       // dEdx = dEdy * dydx
       node->backward(inputs, output, dEdy, j, dEdx);
-//      std::cout << "Expr::backward:" << std::endl;
-//      std::cout << dEdx << std::endl;
     }
-
   }
 
   for (int i=0; i < g_->parameter_nodes().size(); ++i) {
-//    std::cout << "i:" << g->parameter_nodes()[i] << std::endl;
     int nid = g_->parameter_nodes()[i];
-//    std::cout << "parameter node in backward i:" << g_->grads[nid].dim << std::endl;
-//    std::cout << g_->grads[nid] << std::endl;
-    ParameterNode* n = static_cast<ParameterNode*>(g_->nodes()[nid]);
-//    std::cout << n->get_param()->grad_.dim << std::endl;
+    ParameterNodeBase* n = static_cast<ParameterNodeBase*>(g_->nodes()[nid]);
     n->add_gradient(g_->grads[nid]);
   }
 }
