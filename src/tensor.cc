@@ -111,32 +111,34 @@ void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest) {
   RNNPP_CHECK(lhs.dim[1] == rhs.dim[0], "Invalid dimension in matmul");
   RNNPP_CHECK(dest.dim[0] == lhs.dim[0], "Invalid dimension in matmul");
   RNNPP_CHECK(dest.dim[1] == rhs.dim[1], "Invalid dimension in matmul");
+  RNNPP_CHECK(dest.dim.batch_size == max_b, "Invalid batch_size");
 
   const float* ld = lhs.cdata();
   const float* rd = rhs.cdata();
-  float* destd = dest.data;
+  float* dd = dest.data;
 
-  for (int i=0; i < dest.dim.size(); ++i) {
-    destd[i] = 0.;
+  for (int i=0; i < dest.dim.size() * dest.dim.batch_size; ++i) {
+    dd[i] = 0.;
   }
 
   for (int b=0; b < max_b; ++b) {
     for (int m=0; m < M; ++m) {
       for (int n=0; n < N; ++n) {
         int offset1 = m * dest.dim.stride[0] + n * dest.dim.stride[1];
+        offset1 += dest.dim.size() * (b % dest.dim.batch_size);
         for (int k=0; k < K; ++k) {
           int offset2 = m * lhs.dim.stride[0] + k * lhs.dim.stride[1];
+          offset2 += lhs.dim.size() * (b % lhs.dim.batch_size);
           int offset3 = k * rhs.dim.stride[0] + n * rhs.dim.stride[1];
+          offset3 += rhs.dim.size() * (b % rhs.dim.batch_size);
 
-//          float l = ld[lhs.dim.size() * b % lhs.dim.batch_size + offset2 + k];
-//          float r = rd[rhs.dim.size() * b % rhs.dim.batch_size + offset3 + n];
+          dd[offset1] += ld[offset2] * rd[offset3];
+          
+//          float l = ld[lhs.dim.size() * (b % lhs.dim.batch_size) + offset2];
+//          float r = rd[rhs.dim.size() * (b % rhs.dim.batch_size) + offset3];
 //          std::cout << "["<<m<<","<<n<<"]"<< " += [" <<m<<","<<k<<"]" << l << " * "\
-//                    << "["<<k<<","<<n<<"]"<< r << std::endl;
+//                    << "["<<k<<","<<n<<"]"<< r << " = " << dd[offset1] << std::endl;
 
-//          destd[offset1 + n] += ld[lhs.dim.size() * b % lhs.dim.batch_size + offset2 + k] \
-//                                * rd[rhs.dim.size() * b % rhs.dim.batch_size + offset3 + n];
-          destd[offset1] += ld[lhs.dim.size() * b % lhs.dim.batch_size + offset2] \
-                                * rd[rhs.dim.size() * b % rhs.dim.batch_size + offset3];
         }
       }
     }

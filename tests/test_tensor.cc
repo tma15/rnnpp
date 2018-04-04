@@ -244,36 +244,39 @@ class TensorMatmulTest: public ::testing::Test {
   protected:
     void SetUp() {
       t1.dim = Dim({3, 2});
-      t1.data = new float[6];
-      t1.data[0] = 0.;
-      t1.data[1] = 1.;
-      t1.data[2] = 2.;
-      t1.data[3] = 3.;
-      t1.data[4] = 4.;
-      t1.data[5] = 5.;
+      t1.data = new float[t1.dim.size()];
+      t1(0, 0) = 0.;
+      t1(0, 1) = 1.;
+      t1(1, 0) = 2.;
+      t1(1, 1) = 3.;
+      t1(2, 0) = 4.;
+      t1(2, 1) = 5.;
 
       std::vector<float> v{0., 1.,
                            2., 3.,
                            4., 5.,
-                           0., 1.,
-                           2., 3.,
-                           4., 5.};
+                           2., 2.,
+                           4., 6.,
+                           5., 1.};
       t1_batched = Tensor(Dim({3, 2}, 2), v);
 
       t2.dim = Dim({2, 3});
       t2.data = new float[6];
-      t2.data[0] = 1.;
-      t2.data[1] = 2.;
-      t2.data[2] = 3.;
-      t2.data[3] = 4.;
-      t2.data[4] = 5.;
-      t2.data[5] = 6.;
+      t2(0, 0) = 1.;
+      t2(0, 1) = 2.;
+      t2(0, 2) = 3.;
+      t2(1, 0) = 4.;
+      t2(1, 1) = 5.;
+      t2(1, 2) = 6.;
 
       t3.dim = Dim({3, 3});
-      t3.data = new float[9];
+      t3.data = new float[t3.dim.size()];
 
       t4.dim = Dim({2, 2});
-      t4.data = new float[4];
+      t4.data = new float[t4.dim.size()];
+
+      t5.dim = Dim({2, 2}, 2);
+      t5.data = new float[t5.dim.size()];
     }
 
     Tensor t1;
@@ -281,6 +284,7 @@ class TensorMatmulTest: public ::testing::Test {
     Tensor t2;
     Tensor t3;
     Tensor t4;
+    Tensor t5;
 };
 
 TEST_F(TensorMatmulTest, Matmul1) {
@@ -289,15 +293,15 @@ TEST_F(TensorMatmulTest, Matmul1) {
 //         [14, 19, 24],
 //         [24, 33, 42]])
 //  std::cout << t3 << std::endl;
-  EXPECT_EQ(t3.data[0], 4.);
-  EXPECT_EQ(t3.data[1], 5.);
-  EXPECT_EQ(t3.data[2], 6.);
-  EXPECT_EQ(t3.data[3], 14.);
-  EXPECT_EQ(t3.data[4], 19.);
-  EXPECT_EQ(t3.data[5], 24.);
-  EXPECT_EQ(t3.data[6], 24.);
-  EXPECT_EQ(t3.data[7], 33.);
-  EXPECT_EQ(t3.data[8], 42.);
+  EXPECT_EQ(t3(0, 0), 4.);
+  EXPECT_EQ(t3(0, 1), 5.);
+  EXPECT_EQ(t3(0, 2), 6.);
+  EXPECT_EQ(t3(1, 0), 14.);
+  EXPECT_EQ(t3(1, 1), 19.);
+  EXPECT_EQ(t3(1, 2), 24.);
+  EXPECT_EQ(t3(2, 0), 24.);
+  EXPECT_EQ(t3(2, 1), 33.);
+  EXPECT_EQ(t3(2, 2), 42.);
 }
 
 
@@ -313,56 +317,25 @@ TEST_F(TensorMatmulTest, Matmul2) {
   EXPECT_EQ(t4(1, 1), 49.);
 }
 
-TEST_F(TensorMatmulTest, Matmul3) {
-  std::vector<float> v{-0.0961903, 0.154988, -0.0179993,
-                       -0.00139399, -0.0737388, 0.0992229};
-  Tensor ta = Tensor(Dim({3, 2}, 1), v);
 
-  std::vector<float> v2{-0.181541,  0.0185337,
-                        -0.0493364, 0.136482,
-                        -0.01556, -0.0303789};
-  Tensor tb = Tensor(Dim({3, 2}, 1), v2);
 
-  std::vector<float> v3{1., 1.,
-                        1., 1.};
-  Tensor tc = Tensor(Dim({2, 2}, 1), v3);
+TEST_F(TensorMatmulTest, BatchedMatmul) {
+  matmul(t1_batched.transpose(), t2.transpose(), t5);
+//  std::cout << "t1\n" << t1_batched.transpose() << std::endl;
+//  std::cout << "t2\n" << t2 << std::endl;
+//  std::cout << "res:\n" << t5 << std::endl;
 
-  Tensor t4;
-  t4.dim  = Dim({2, 3}, 1);
-  t4.data = new float[6];
+  Tensor ret1 = t5.batch_elem(0);
+  EXPECT_EQ(ret1(0, 0), 16.);
+  EXPECT_EQ(ret1(0, 1), 34.);
+  EXPECT_EQ(ret1(1, 0), 22.);
+  EXPECT_EQ(ret1(1, 1), 49.);
 
-//  std::cout << tc.dim << " " << tb.dim << std::endl;
-//  std::cout << "tc:\n" << tc << std::endl;
-//  std::cout << "tb\n" << tb << std::endl;
-//  std::cout << "tb.T\n" << tb.transpose() << std::endl;
-//  matmul(tc, tb.transpose(), t4);
-//  std::cout << "t4" << std::endl;
-//  std::cout << t4 << std::endl;
-//  np.matmul(dEdy, b.transpose())
-//  array([[-0.045059 ,  0.0029737, -0.0797153],
-//         [-0.045059 ,  0.0029737, -0.0797153]])
-//
-//  std::cout << t3 << std::endl;
-//  EXPECT_EQ(t3.data[0], 4.);
-//  EXPECT_EQ(t3.data[1], 5.);
-//  EXPECT_EQ(t3.data[2], 6.);
-//  EXPECT_EQ(t3.data[3], 14.);
-//  EXPECT_EQ(t3.data[4], 19.);
-//  EXPECT_EQ(t3.data[5], 24.);
-//  EXPECT_EQ(t3.data[6], 24.);
-//  EXPECT_EQ(t3.data[7], 33.);
-//  EXPECT_EQ(t3.data[8], 42.);
+  Tensor ret2 = t5.batch_elem(1);
+  EXPECT_EQ(ret2(0, 0), 25.);
+  EXPECT_EQ(ret2(0, 1), 58.);
+  EXPECT_EQ(ret2(1, 0), 17.);
+  EXPECT_EQ(ret2(1, 1), 44.);
 }
 
-
-//TEST_F(TensorMatmulTest, BatchedMatmul3) {
-//  matmul(t1_batched.transpose(), t2.transpose(), t4);
-//  array([[13, 16],
-//        [40, 52]])
-//  std::cout << t4 << std::endl;
-//  EXPECT_EQ(t4.data[0], 26.);
-//  EXPECT_EQ(t4.data[1], 32.);
-//  EXPECT_EQ(t4.data[2], 80.);
-//  EXPECT_EQ(t4.data[3], 104.);
-//}
 
