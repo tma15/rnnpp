@@ -178,13 +178,10 @@ TEST_F(TensorTest, SumAlongBatch) {
   dst.data = new float[dst.dim.size()];
   dst = Scalar(0.);
   sum(m_batch, dst, 2);
-  std::cout << "src:\n" << m_batch << std::endl;
-  std::cout << "ret:\n" << dst.dim << std::endl;
-  std::cout << dst << std::endl;
-//  Tensor b1 = dst.batch_elem(0);
-//  EXPECT_EQ(b1(0), 6.);
-//  Tensor b2 = dst.batch_elem(1);
-//  EXPECT_EQ(b2(0), 22.);
+  EXPECT_EQ(dst(0, 0), 4.);
+  EXPECT_EQ(dst(0, 1), 6.);
+  EXPECT_EQ(dst(1, 0), 8.);
+  EXPECT_EQ(dst(1, 1), 10.);
 }
 
 TEST_F(TensorTest, ElementAdd) {

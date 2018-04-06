@@ -39,45 +39,49 @@ Tensor Tensor::batch_elem(int bid) {
 void _sum(std::vector<int> &dst_index, 
     int pos, int axis, const Tensor &src, Tensor &dst) {
 
+  int ss = src.dim.size();
+  int ds = dst.dim.size();
+
   if (pos == dst.dim.shape.size()-1) {
     for (dst_index[pos]=0; dst_index[pos] < dst.dim.shape[pos]; dst_index[pos] += 1) {
 
-//      std::cout << "dst index:";
       int offset1 = 0;
-      for (int k=0; k < dst_index.size(); ++k) {
-//        std::cout << dst_index[k] << ",";
-        offset1 += dst_index[k] * dst.dim.stride[k];
+      if (axis > -1) {
+        for (int k=0; k < dst_index.size(); ++k) {
+          offset1 += dst_index[k] * dst.dim.stride[k];
+//          std::cout << dst_index[k] << ",";
+        }
+//        std::cout << std::endl;
       }
-//      std::cout << std::endl;
-//      std::cout << "offset1:" << offset1 << std::endl;
 
       int j = 0;
-//      std::cout << "src index:";
       int offset2base = 0;
       for (int k=0; k < src.dim.stride.size(); ++k) {
         if (k==axis) {
-//          std::cout << "j" << ",";
           continue;
         }
-//        std::cout << dst_index[j] << "(" << src.dim.stride[k] << "),";
         offset2base += dst_index[j] * src.dim.stride[k];
         j += 1;
       }
-//      std::cout << std::endl;
-//      std::cout << "offset2base:" << offset2base << std::endl;
 
-      int ss = src.dim.size();
-      int ds = dst.dim.size();
-      for (int b=0; b < src.batch_size(); ++b) {
-        dst.data[offset1 + b * ds] = 0;
-        for (int i=0; i < src.dim.shape[axis]; ++i) {
-          int offset2 = offset2base + i * src.dim.stride[axis];
-          dst.data[offset1 + b * ds] += src.data[offset2 + b * ss];
-  //        std::cout << " += src[" << offset2 << "] = " << src.data[offset2] << std::endl;
+      if (axis == -1) { // sum all elements
+        for (int b=0; b < src.batch_size(); ++b) {
+          for (int i=0; i < src.dim.size(); ++i) {
+            dst.data[b * ds] += src.data[i + b * ss];
+          }
         }
-  //      std::cout << "sum(offset1=" << offset1 << ") = " << dst.data[offset1] << std::endl;
-  //      std::cout << std::endl;
-  //      }
+      } else if (axis == src.dim.shape.size()) { // sum along batch
+        for (int b=0; b < src.batch_size(); ++b) {
+          int offset2 = offset2base;
+          dst.data[offset1] += src.data[offset2 + b * ss];
+        }
+      } else { // sum along axis
+        for (int b=0; b < src.batch_size(); ++b) {
+          for (int i=0; i < src.dim.shape[axis]; ++i) {
+            int offset2 = offset2base + i * src.dim.stride[axis];
+            dst.data[offset1 + b * ds] += src.data[offset2 + b * ss];
+          }
+        }
       }
     }
   } else {
