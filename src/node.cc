@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "error.h"
+#include "expr.h"
 #include "node.h"
 
 namespace rnnpp {
@@ -54,21 +55,41 @@ void LookupNode::backward(const std::vector<Tensor> &inputs, const Tensor &outpu
 //}
 
 void Sum::forward(const std::vector<Tensor> &inputs, Tensor &output) {
-//  output.dim = Dim({1, 1});
-//  int k = output.dim.size() * output.dim.batch_size;
-//  output.data = new float[k];
+  int max_b = inputs[0].dim.batch_size;
+  for (int i=1; i < inputs.size(); ++i) {
+    if (inputs[i].dim.batch_size > max_b) max_b = inputs[i].dim.batch_size;
+  }
 
-//  for (int i=0; i < inputs.size(); ++i) {
-//    output += inputs[i];
-//  }
+  if (axis_ == -1) {
+    output.dim = Dim({1, 1}, max_b);
+  } else {
+    std::vector<int> shape;
+    for (int k=0; k < inputs[0].dim.shape.size(); ++k) {
+      if (k == axis_) continue;
+      shape.push_back(inputs[0].dim.shape[k]);
+    }
+    output.dim = Dim(shape, max_b);
+  }
+
+  int k = output.dim.size() * output.dim.batch_size;
+  output.data = new float[k];
+
+  output = Scalar(0.);
+  for (int i=0; i < inputs.size(); ++i) {
+//    std::cout << "in:" << inputs[i] << std::endl;
+    sum(inputs[i], output, axis_);
+  }
+//  std::cout << "out:" << output << std::endl;
 }
 
 void Sum::backward(const std::vector<Tensor> &inputs, const Tensor &output,
     const Tensor &dEdy, int ii, Tensor &dEdxi) {
-//  dEdxi.dim = Dim(inputs[ii].dim.shape, 1);
-//  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
-//  dEdxi.data = new float[k];
-//  dEdxi = dEdy;
+  dEdxi.dim = inputs[ii].dim;
+  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+  dEdxi.data = new float[k];
+  dEdxi = Scalar(as_scalar(dEdy));
+
+//  std::cout << "dEdxi " << dEdxi.dim << "\n" << dEdxi << std::endl;
 }
 
 

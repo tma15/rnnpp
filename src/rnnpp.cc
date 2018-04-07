@@ -51,9 +51,9 @@ Expression squared_distance(const Expression &a, const Expression &b) {
   return e;
 }
 
-Expression sum(const Expression &x) {
+Expression sum(const Expression &x, int axis) {
   int i = x.g_->nodes().size();
-  Node* node = new Sum({x.id()});
+  Node* node = new Sum({x.id()}, axis);
   x.g_->add_node(node);
   Expression e(x.g_, i);
   return e;

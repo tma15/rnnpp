@@ -17,7 +17,7 @@ Expression lookup(Graph &g, const LookupParameter &lp, int index);
 
 Expression squared_distance(const Expression &a, const Expression &b);
 
-Expression sum(const Expression &x);
+Expression sum(const Expression &x, int axis);
 
 Expression tanh(const Expression &x);
 
