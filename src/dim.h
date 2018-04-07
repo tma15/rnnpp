@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+namespace rnnpp {
+
 class Dim {
 
   public:
@@ -32,11 +34,23 @@ class Dim {
       for (int i=0; i < d.shape.size()-1; ++i) {
         os << d.shape[i] << ",";
       }
-      os << d.shape.back() << ")";
+      os << d.shape.back() << ") " << d.batch_size;
       return os;
     };
 
     int operator[] (int i) const { return shape[i]; }
+
+    bool operator== (const Dim &rhs) {
+      if (shape.size() != rhs.shape.size()) {
+        return false;
+      }
+      for (int i=0; i < shape.size(); ++i) {
+        if (shape[i] != rhs.shape[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
 
     int size() const {
       int s = 1;
@@ -69,5 +83,9 @@ class Dim {
 
 
 };
+
+bool operator==(const Dim &lhs, const Dim &rhs);
+
+} // namespace rnnpp
 
 #endif // RNNPP_DIM_H_
