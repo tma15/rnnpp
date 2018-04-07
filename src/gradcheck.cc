@@ -8,10 +8,7 @@
 
 namespace rnnpp {
 
-void gradient_check(Expression &expr) {
-//  const std::vector<Node*> &nodes = expr.g_->nodes();
-//  std::cout << "gradient_check:" << std::endl;
-
+bool gradient_check(Expression &expr) {
   expr.forward();
   expr.backward();
 
@@ -21,8 +18,6 @@ void gradient_check(Expression &expr) {
   bool failed = false;
 
   for (int i=0; i < g->parameter_nodes().size(); ++i) {
-//    std::cout << "Grad " << i << std::endl;
-//    std::cout << g->grads[i] << std::endl;
 
     int nid = g->parameter_nodes()[i];
     int tensor_size = g->outputs[nid].dim.size();
@@ -32,11 +27,17 @@ void gradient_check(Expression &expr) {
 
       g->outputs[nid].data[j] += alpha;
       float e_p = as_scalar(expr.forward());
-//      std::cout << "xp:" << g->outputs[nid].data[j] << std::endl;
+//      std::cout << "x+:" << g->outputs[nid].data[j] << std::endl;
+//      std::cout << g->outputs[nid] << std::endl;
+//      std::cout << "e+:" << e_p << std::endl;
+//      std::cout << std::endl;
 
       g->outputs[nid].data[j] -= 2. * alpha;
       float e_m = as_scalar(expr.forward());
-//      std::cout << "xm:" << g->outputs[nid].data[j] << std::endl;
+//      std::cout << "x-:" << g->outputs[nid].data[j] << std::endl;
+//      std::cout << g->outputs[nid] << std::endl;
+//      std::cout << "e-:" << e_m << std::endl;
+//      std::cout << std::endl;
 
       g->outputs[nid].data[j] = old;
 
@@ -58,6 +59,8 @@ void gradient_check(Expression &expr) {
   if (failed) {
     std::cerr << "failed to gradient_check" << std::endl;
   }
+
+  return !failed;
 }
 
 } // namespace rnnpp

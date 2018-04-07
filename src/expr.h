@@ -20,6 +20,9 @@ class Expression {
 
     Graph* graph() { return g_; };
 
+    /** 
+     * Returns expression id in a graph
+     */
     int id() const { return id_; }
 
     Graph* g_;
@@ -32,6 +35,9 @@ float as_scalar(const Tensor& e);
 
 Expression operator+(const Expression &a, const Expression &b);
 Expression operator*(const Expression &a, const Expression &b);
+Expression operator/(const Expression &a, const Expression &b);
+Expression operator/(const Expression &a, float b);
+Expression operator/(float a, const Expression &b);
 
 
 } // namespace rnnpp

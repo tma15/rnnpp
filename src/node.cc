@@ -182,6 +182,80 @@ void Mult::backward(const std::vector<Tensor> &inputs, const Tensor &output,
 //  std::cout << "dEdx: " << dEdxi.dim << ":\n" << dEdxi << std::endl;
 }
 
+void Divide::forward(const std::vector<Tensor> &inputs, Tensor &output) {
+  RNNPP_CHECK(inputs.size() == 2, "Number of inputs is invalid: " << inputs.size());
+  RNNPP_CHECK(inputs[0].dim == inputs[1].dim,
+      "Invalid dimensions" << inputs[0].dim << " " << inputs[1].dim);
+
+  int max_b = std::max(inputs[0].dim.batch_size, inputs[1].dim.batch_size);
+  output.dim = Dim(inputs[0].dim.shape, max_b);
+  int k = output.dim.size() * output.dim.batch_size;
+  output.data = new float[k];
+
+  Tensor a = inputs[0];
+  Tensor b = inputs[1];
+  output = a / b;
+}
+
+// y = a / b
+// dEda = dEdy * dyda = dEdy * (1/b)
+// dEdb = dEdy * dydb = dEdy * (-a / b^2)
+void Divide::backward(const std::vector<Tensor> &inputs, const Tensor &output,
+    const Tensor &dEdy, int ii, Tensor &dEdxi) {
+  dEdxi.dim = inputs[ii].dim;
+  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+  dEdxi.data = new float[k];
+
+  if (ii == 0) {
+    dEdxi = dEdy / inputs[1];
+  } else {
+    dEdxi = dEdy * (-inputs[0] / square(inputs[1]));
+  }
+
+//  std::cout << "dEdy:" << dEdy.dim << "\n" << dEdy << std::endl;
+//  std::cout << "a:" << inputs[0].dim << "\n" << inputs[0] << std::endl;
+//  std::cout << "b:" << inputs[1].dim << "\n" << inputs[1] << std::endl;
+//  std::cout << "dEdx:" << dEdxi.dim << "\n" << dEdxi << std::endl;
+//  std::cout << std::endl;
+}
+
+void DivideConst::forward(const std::vector<Tensor> &inputs, Tensor &output) {
+  RNNPP_CHECK(inputs.size() == 1, "Number of inputs is invalid: " << inputs.size());
+
+  int max_b = inputs[0].dim.batch_size;
+  output.dim = Dim(inputs[0].dim.shape, max_b);
+  int k = output.dim.size() * output.dim.batch_size;
+  output.data = new float[k];
+
+  Tensor a = inputs[0];
+  if (rhs_is_const) {
+    output = a / Scalar(value);
+  } else {
+    output = Scalar(value) / a;
+  }
+}
+
+void DivideConst::backward(const std::vector<Tensor> &inputs, const Tensor &output,
+    const Tensor &dEdy, int ii, Tensor &dEdxi) {
+  dEdxi.dim = inputs[ii].dim;
+  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+  dEdxi.data = new float[k];
+
+  if (rhs_is_const) {
+    dEdxi = dEdy / Scalar(value);
+  } else {
+    dEdxi = dEdy * (-Scalar(value) / square(inputs[0]));
+  }
+
+//  std::cout << "dEdy:" << dEdy.dim << "\n" << dEdy << std::endl;
+//  std::cout << "a:" << inputs[0].dim << "\n" << inputs[0] << std::endl;
+//  std::cout << "b:" << inputs[1].dim << "\n" << inputs[1] << std::endl;
+//  std::cout << "dEdx:" << dEdxi.dim << "\n" << dEdxi << std::endl;
+//  std::cout << std::endl;
+}
+
+
+
 void TanhNode::forward(const std::vector<Tensor> &inputs, Tensor &output) {
   output.dim = inputs[0].dim;
   int k = output.dim.size() * output.dim.batch_size;

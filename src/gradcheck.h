@@ -5,7 +5,7 @@
 
 namespace rnnpp {
 
-void gradient_check(Expression &expr);
+bool gradient_check(Expression &expr);
 
 } // namespace rnnpp
 

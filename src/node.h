@@ -190,6 +190,43 @@ class Mult: public Node {
     std::string type() { return "Mult"; }
 };
 
+class Divide: public Node {
+  public:
+    Divide(): Node() {}
+
+    Divide(std::initializer_list<int> a): Node(a) {}
+
+    ~Divide(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "Divide"; }
+};
+
+class DivideConst: public Node {
+  public:
+    DivideConst(): Node(), value(0) {}
+
+    DivideConst(std::initializer_list<int> a): Node(a), value(0) {}
+
+    DivideConst(std::initializer_list<int> a, int b, bool rhs_is_const)
+      : Node(a), value(b), rhs_is_const(rhs_is_const) {}
+
+    ~DivideConst(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "DivideConst"; }
+  private:
+    float value;
+    bool rhs_is_const;
+};
 
 class SquaredDistance: public Node {
   public:

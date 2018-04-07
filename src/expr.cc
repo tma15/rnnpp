@@ -77,4 +77,31 @@ Expression operator*(const Expression &a, const Expression &b) {
   return e;
 }
 
+Expression operator/(const Expression &a, const Expression &b) {
+  int i = a.g_->nodes().size();
+  Node* node = new Divide({a.id(), b.id()});
+  a.g_->add_node(node);
+  Expression e(a.g_, i);
+  return e;
+}
+
+Expression operator/(const Expression &a, float b) {
+  int i = a.g_->nodes().size();
+  bool rhs_is_const = true;
+  Node* node = new DivideConst({a.id()}, b, rhs_is_const);
+  a.g_->add_node(node);
+  Expression e(a.g_, i);
+  return e;
+}
+
+Expression operator/(float a, const Expression &b) {
+  int i = b.g_->nodes().size();
+  bool rhs_is_const = false;
+  Node* node = new DivideConst({b.id()}, a, rhs_is_const);
+  b.g_->add_node(node);
+  Expression e(b.g_, i);
+  return e;
+}
+
+
 } // namespace rnnpp
