@@ -210,4 +210,80 @@ std::ostream& operator<<(std::ostream &os, const Tensor &t) {
   return os;
 }
 
+
+// y_{i, T, k} = xs[N]_{i, j, k}
+// T = sum_{t=1,...,N-1} xs[t].shape[axis] + j
+//   = P + j
+void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
+    Tensor &dst, int axis) {
+  if (pos == dst.dim.shape.size()-1) {
+    int ds = dst.dim.size();
+
+    for (dst_index[pos]=0; dst_index[pos] < dst.dim.shape[pos]; dst_index[pos] += 1) {
+
+      int offset1 = 0;
+      for (int k=0; k < dst_index.size(); ++k) {
+        offset1 += dst_index[k] * dst.dim.stride[k];
+      }
+
+      if (axis == dst.dim.shape.size()) { // along batch
+        int offset2 = 0;
+        for (int k=0; k < dst_index.size(); ++k) {
+          offset2 += dst_index[k] * xs[0].dim.stride[k];
+        }
+
+        int b_dst = 0;
+        for (int N=0; N < xs.size(); ++N) {
+          for (int b=0; b < xs[N].batch_size(); ++b) {
+            int ss = xs[N].dim.size();
+            dst.data[offset1 + b_dst * ds] = xs[N].data[offset2 + b * ss];
+            b_dst += 1;
+          }
+        }
+      } else { // along axis
+        int T = dst_index[axis];
+        int P = 0;
+        int N = 0;
+        for (; N < xs.size(); ++N) {
+          float tmp = P + xs[N].dim.shape[axis];
+          if (tmp > T) {
+            break;
+          }
+          P = tmp;
+        }
+        int j = 0;
+        for (; j < xs[N].dim.shape[axis]; ++j) {
+          if (P + j == T) {
+            break;
+          }
+        }
+
+        int offset2 = 0;
+        for (int k=0; k < dst_index.size(); ++k) {
+          if (k == axis) {
+            offset2 += j * xs[N].dim.stride[k];
+          } else {
+            offset2 += dst_index[k] * xs[N].dim.stride[k];
+          }
+        }
+
+        for (int b=0; b < xs[N].batch_size(); ++b) {
+          int ss = xs[N].dim.size();
+          dst.data[offset1 + b * ds] = xs[N].data[offset2 + b * ss];
+        }
+      }
+    }
+
+  } else {
+    for (dst_index[pos]=0; dst_index[pos] < dst.dim.shape[pos]; dst_index[pos] +=1) {
+      _concatenate(dst_index, pos+1, xs, dst, axis);
+    }
+  }
+}
+
+void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis) {
+  std::vector<int> dst_index(dst.dim.shape.size(), 0);
+  _concatenate(dst_index, 0, xs, dst, axis);
+}
+
 } // namespace rnnpp

@@ -315,6 +315,10 @@ void _sum(std::vector<int> &dst_index, int pos, int axis, const Tensor &src, Ten
 
 void sum(const Tensor &src, Tensor &dst, int axis);
 
+void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
+    Tensor &dst, int axis);
+void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis);
+
 } // namespace rnnpp
 
 

@@ -289,3 +289,78 @@ TEST_F(TensorTest, BatchedMatmul) {
   EXPECT_EQ(ret2(1, 0), 17.);
   EXPECT_EQ(ret2(1, 1), 44.);
 }
+
+TEST_F(TensorTest, Concatenate) {
+  Tensor res;
+  res.dim = Dim({6, 2});
+  res.data = new float[res.dim.size()];
+
+  std::vector<Tensor> inputs = {m1, m2};
+  concatenate(inputs, res, 0);
+  EXPECT_EQ(res(0, 0), 0);
+  EXPECT_EQ(res(0, 1), 1);
+  EXPECT_EQ(res(1, 0), 2);
+  EXPECT_EQ(res(1, 1), 3);
+  EXPECT_EQ(res(2, 0), 4);
+  EXPECT_EQ(res(2, 1), 5);
+  EXPECT_EQ(res(3, 0), 1);
+  EXPECT_EQ(res(3, 1), 2);
+  EXPECT_EQ(res(4, 0), 3);
+  EXPECT_EQ(res(4, 1), 4);
+  EXPECT_EQ(res(5, 0), 5);
+  EXPECT_EQ(res(5, 1), 6);
+}
+
+TEST_F(TensorTest, Concatenate2) {
+  std::vector<Tensor> inputs = {m1, m2};
+  Tensor res;
+  res.dim = Dim({3, 4});
+  res.data = new float[res.dim.size()];
+  concatenate(inputs, res, 1);
+
+  EXPECT_EQ(res(0, 0), 0);
+  EXPECT_EQ(res(0, 1), 1);
+  EXPECT_EQ(res(0, 2), 1);
+  EXPECT_EQ(res(0, 3), 2);
+  EXPECT_EQ(res(1, 0), 2);
+  EXPECT_EQ(res(1, 1), 3);
+  EXPECT_EQ(res(1, 2), 3);
+  EXPECT_EQ(res(1, 3), 4);
+  EXPECT_EQ(res(2, 0), 4);
+  EXPECT_EQ(res(2, 1), 5);
+  EXPECT_EQ(res(2, 2), 5);
+  EXPECT_EQ(res(2, 3), 6);
+}
+
+TEST_F(TensorTest, ConcatenateAlongBatch) {
+  Tensor res;
+  res.dim = Dim({3, 2}, 3);
+  res.data = new float[res.dim.size() * res.dim.batch_size];
+
+  std::vector<Tensor> inputs = {m1, m_batch2};
+  concatenate(inputs, res, 2);
+  Tensor b0 = res.batch_elem(0);
+  EXPECT_EQ(b0(0, 0), 0);
+  EXPECT_EQ(b0(0, 1), 1);
+  EXPECT_EQ(b0(1, 0), 2);
+  EXPECT_EQ(b0(1, 1), 3);
+  EXPECT_EQ(b0(2, 0), 4);
+  EXPECT_EQ(b0(2, 1), 5);
+
+  Tensor b1 = res.batch_elem(1);
+  EXPECT_EQ(b1(0, 0), 2);
+  EXPECT_EQ(b1(0, 1), 3);
+  EXPECT_EQ(b1(1, 0), 4);
+  EXPECT_EQ(b1(1, 1), 5);
+  EXPECT_EQ(b1(2, 0), 6);
+  EXPECT_EQ(b1(2, 1), 7);
+
+  Tensor b2 = res.batch_elem(2);
+  EXPECT_EQ(b2(0, 0), 0);
+  EXPECT_EQ(b2(0, 1), 1);
+  EXPECT_EQ(b2(1, 0), 2);
+  EXPECT_EQ(b2(1, 1), 3);
+  EXPECT_EQ(b2(2, 0), 4);
+  EXPECT_EQ(b2(2, 1), 5);
+}
+
