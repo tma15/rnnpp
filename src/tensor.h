@@ -312,12 +312,16 @@ void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest);
 
 void _sum(std::vector<int> &dst_index, int pos, int axis, const Tensor &src, Tensor &dst);
 // dst_{i, k} = sum_j src_{i, j, k}
-
 void sum(const Tensor &src, Tensor &dst, int axis);
 
 void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
     Tensor &dst, int axis);
 void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis);
+
+
+void _split(std::vector<int> &dst_index, int pos, std::vector<Tensor> &x,
+    int i, std::vector<Tensor> &ys, int axis);
+void split(Tensor &x, std::vector<Tensor> &ys, int axis);
 
 } // namespace rnnpp
 

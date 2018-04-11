@@ -115,7 +115,6 @@ void matmul(const Tensor &lhs, const Tensor &rhs, Tensor &dest) {
   RNNPP_CHECK(lhs.dim[1] == rhs.dim[0], "Invalid dimension in matmul");
   RNNPP_CHECK(dest.dim[0] == lhs.dim[0], "Invalid dimension in matmul");
   RNNPP_CHECK(dest.dim[1] == rhs.dim[1], "Invalid dimension in matmul");
-  RNNPP_CHECK(dest.dim.batch_size == max_b, "Invalid batch_size");
 
   const float* ld = lhs.cdata();
   const float* rd = rhs.cdata();
@@ -155,15 +154,10 @@ void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int
 
     os << "[";
     for (cur[pos]=0; cur[pos] < shape[pos]-1; cur[pos] += 1) {
-//      std::cout << "index:";
-
       int offset = 0;
       for (int k=0; k < cur.size(); ++k) {
-//        std::cout << cur[k] << ",";
         offset += cur[k] * stride[k];
       }
-//      std::cout << cur.back() << ":";
-//      os << t.data[offset] << ",";
       os << t.data[offset + b * t.dim.size()] << ",";
     }
 
@@ -171,21 +165,11 @@ void nest(std::ostream &os, const std::vector<int> &shape, const std::vector<int
     for (int k=0; k < cur.size(); ++k) {
       offset += cur[k] * stride[k];
     }
-//    os << t.data[offset] << "]";
     os << t.data[offset + b * t.dim.size()] << "]";
     if (flag) {
-//      std::cout << "newline:" ;
       os << "," << std::endl;
-//      for (int i=0; i < indent; ++i) {
-//        os << " ";
-//      }
     }
-
   } else {
-//    for (int i=0; i < indent; ++i) {
-//      std::cout << " ";
-//    }
-
     os << "[";
     for (cur[pos]=0; cur[pos] < shape[pos]-1; cur[pos] += 1) {
       nest(os, shape, stride, cur, pos+1, t, indent+1, true, b);
@@ -284,6 +268,46 @@ void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
 void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis) {
   std::vector<int> dst_index(dst.dim.shape.size(), 0);
   _concatenate(dst_index, 0, xs, dst, axis);
+}
+
+// y[j]_{i, k} = x_{i, j, k}
+void _split(std::vector<int> &dst_index, int pos, Tensor &x, int i, std::vector<Tensor> &ys, int axis) {
+  if (pos == ys[i].dim.shape.size()-1) {
+    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] += 1) {
+
+      if (axis == ys[i].dim.shape.size()) { // along batch
+      } else { // along axis
+        int offset1 = 0;
+        for (int k=0; k < dst_index.size(); ++k) {
+          offset1 += dst_index[k] * ys[i].dim.stride[k];
+        }
+
+        int offset2 = 0;
+        for (int k=0; k < dst_index.size(); ++k) {
+          if (k == axis) {
+            offset2 += i * x.dim.stride[k];
+          } else {
+            offset2 += dst_index[k] * x.dim.stride[k];
+          }
+        }
+        for (int b=0; b < ys[i].dim.batch_size; ++b) {
+          ys[i].data[offset1 + b * ys[i].dim.size()] = x.data[offset2 + b * x.dim.size()];
+        }
+      }
+    }
+  } else {
+    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] +=1) {
+      _split(dst_index, pos+1, x, i, ys, axis);
+    }
+  }
+}
+
+void split(Tensor &x, std::vector<Tensor> &ys, int axis) {
+  for (int i=0; i < ys.size(); ++i) {
+    std::vector<int> dst_index(ys[i].dim.shape.size(), 0);
+    _split(dst_index, 0, x, i, ys, axis);
+  }
+
 }
 
 } // namespace rnnpp
