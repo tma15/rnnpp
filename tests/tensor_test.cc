@@ -364,3 +364,94 @@ TEST_F(TensorTest, ConcatenateAlongBatch) {
   EXPECT_EQ(b2(2, 1), 5);
 }
 
+TEST_F(TensorTest, Split) {
+  Tensor res1, res2, res3;
+  Dim d = Dim({1, 2}, 2);
+
+  res1.dim = d;
+  res1.data = new float[res1.dim.size(), res1.dim.batch_size];
+  res2.dim = d;
+  res2.data = new float[res2.dim.size(), res2.dim.batch_size];
+  res3.dim = d;
+  res3.data = new float[res3.dim.size(), res3.dim.batch_size];
+
+  std::vector<Tensor> res = {res1, res2, res3};
+  split(m_batch2, res, 0);
+
+//  std::cout << "m_batch2: " << m_batch2.dim << "\n:" << m_batch2 << std::endl;
+//  std::cout << "res1: " << res[0].dim << "\n:" << res[0] << std::endl;
+
+  Tensor res1_b0 = res[0].batch_elem(0);
+  EXPECT_EQ(res1_b0(0, 0), 2);
+  EXPECT_EQ(res1_b0(0, 1), 3);
+
+  Tensor res1_b1 = res[0].batch_elem(1);
+  EXPECT_EQ(res1_b1(0, 0), 0);
+  EXPECT_EQ(res1_b1(0, 1), 1);
+
+  Tensor res2_b0 = res[1].batch_elem(0);
+  EXPECT_EQ(res2_b0(0, 0), 4);
+  EXPECT_EQ(res2_b0(0, 1), 5);
+
+  Tensor res2_b1 = res[1].batch_elem(1);
+  EXPECT_EQ(res2_b1(0, 0), 2);
+  EXPECT_EQ(res2_b1(0, 1), 3);
+
+  Tensor res3_b0 = res[2].batch_elem(0);
+  EXPECT_EQ(res3_b0(0, 0), 6);
+  EXPECT_EQ(res3_b0(0, 1), 7);
+
+  Tensor res3_b1 = res[2].batch_elem(1);
+  EXPECT_EQ(res3_b1(0, 0), 4);
+  EXPECT_EQ(res3_b1(0, 1), 5);
+
+
+//  Tensor res1, res2, res3;
+//  Dim d = Dim({1, 2});
+
+//  res1.dim = d;
+//  res1.data = new float[res1.dim.size()];
+//  res2.dim = d;
+//  res2.data = new float[res2.dim.size()];
+//  res3.dim = d;
+//  res3.data = new float[res3.dim.size()];
+
+//  std::vector<Tensor> res = {res1, res2, res3};
+//  split(m1, res, 0);
+
+//  EXPECT_EQ(res[0](0, 0), 0);
+//  EXPECT_EQ(res[0](0, 1), 1);
+
+//  EXPECT_EQ(res[1](0, 0), 2);
+//  EXPECT_EQ(res[1](0, 1), 3);
+
+//  EXPECT_EQ(res[2](0, 0), 4);
+//  EXPECT_EQ(res[2](0, 1), 5);
+}
+
+TEST_F(TensorTest, SplitAlongBatch) {
+  Tensor res1, res2;
+  Dim d = Dim({2, 2});
+
+  res1.dim = d;
+  res1.data = new float[res1.dim.size()];
+  res2.dim = d;
+  res2.data = new float[res2.dim.size()];
+
+  std::vector<Tensor> res = {res1, res2};
+  split(m_batch, res, 2);
+
+  std::cout << "res1\n:" << res[0] << std::endl;
+  std::cout << "res2\n:" << res[1] << std::endl;
+
+  EXPECT_EQ(res[0](0, 0), 0);
+  EXPECT_EQ(res[0](0, 1), 1);
+  EXPECT_EQ(res[0](1, 0), 2);
+  EXPECT_EQ(res[0](1, 1), 3);
+
+  EXPECT_EQ(res[1](0, 0), 4);
+  EXPECT_EQ(res[1](0, 1), 5);
+  EXPECT_EQ(res[1](1, 0), 6);
+  EXPECT_EQ(res[1](1, 1), 7);
+
+}
