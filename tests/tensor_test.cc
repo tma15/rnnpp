@@ -404,29 +404,6 @@ TEST_F(TensorTest, Split) {
   Tensor res3_b1 = res[2].batch_elem(1);
   EXPECT_EQ(res3_b1(0, 0), 4);
   EXPECT_EQ(res3_b1(0, 1), 5);
-
-
-//  Tensor res1, res2, res3;
-//  Dim d = Dim({1, 2});
-
-//  res1.dim = d;
-//  res1.data = new float[res1.dim.size()];
-//  res2.dim = d;
-//  res2.data = new float[res2.dim.size()];
-//  res3.dim = d;
-//  res3.data = new float[res3.dim.size()];
-
-//  std::vector<Tensor> res = {res1, res2, res3};
-//  split(m1, res, 0);
-
-//  EXPECT_EQ(res[0](0, 0), 0);
-//  EXPECT_EQ(res[0](0, 1), 1);
-
-//  EXPECT_EQ(res[1](0, 0), 2);
-//  EXPECT_EQ(res[1](0, 1), 3);
-
-//  EXPECT_EQ(res[2](0, 0), 4);
-//  EXPECT_EQ(res[2](0, 1), 5);
 }
 
 TEST_F(TensorTest, SplitAlongBatch) {

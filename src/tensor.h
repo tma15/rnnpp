@@ -314,18 +314,19 @@ void _sum(std::vector<int> &dst_index, int pos, int axis, const Tensor &src, Ten
 // dst_{i, k} = sum_j src_{i, j, k}
 void sum(const Tensor &src, Tensor &dst, int axis);
 
-void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
+void _concatenate(std::vector<int> &dst_index, int pos, const std::vector<Tensor> &xs,
     Tensor &dst, int axis);
-void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis);
+void concatenate(const std::vector<Tensor> &xs, Tensor &dst, int axis);
 
 
-void _split(std::vector<int> &dst_index, int pos, std::vector<Tensor> &x,
-    int i, std::vector<Tensor> &ys, int axis);
-void split(Tensor &x, std::vector<Tensor> &ys, int axis);
+void _split(std::vector<int> &dst_index, int pos, const Tensor &x,
+//    int i, std::vector<Tensor> &ys, int axis);
+    int i, Tensor &y, int axis);
+void split(const Tensor &x, std::vector<Tensor> &ys, int axis);
+
+void slice(const Tensor &x, Tensor &y, int k, int axis);
 
 } // namespace rnnpp
-
-
 
 
 #endif // RNNPP_TESOR_H_

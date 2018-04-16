@@ -198,7 +198,7 @@ std::ostream& operator<<(std::ostream &os, const Tensor &t) {
 // y_{i, T, k} = xs[N]_{i, j, k}
 // T = sum_{t=1,...,N-1} xs[t].shape[axis] + j
 //   = P + j
-void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
+void _concatenate(std::vector<int> &dst_index, int pos, const std::vector<Tensor> &xs,
     Tensor &dst, int axis) {
   if (pos == dst.dim.shape.size()-1) {
     int ds = dst.dim.size();
@@ -265,68 +265,77 @@ void _concatenate(std::vector<int> &dst_index, int pos, std::vector<Tensor> &xs,
   }
 }
 
-void concatenate(std::vector<Tensor> &xs, Tensor &dst, int axis) {
+void concatenate(const std::vector<Tensor> &xs, Tensor &dst, int axis) {
   std::vector<int> dst_index(dst.dim.shape.size(), 0);
   _concatenate(dst_index, 0, xs, dst, axis);
 }
 
 // y[j]_{i, k} = x_{i, j, k}
-void _split(std::vector<int> &dst_index, int pos, Tensor &x, int i, std::vector<Tensor> &ys, int axis) {
-  if (pos == ys[i].dim.shape.size()-1) {
-    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] += 1) {
-      if (axis == ys[i].dim.shape.size()) { // along batch
+//void _split(std::vector<int> &dst_index, int pos, const Tensor &x, int i,
+//    std::vector<Tensor> &ys, int axis) {
+void _split(std::vector<int> &dst_index, int pos, const Tensor &x, int i,
+    Tensor &y, int axis) {
+//  if (pos == ys[i].dim.shape.size()-1) {
+  if (pos == y.dim.shape.size()-1) {
+//    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] += 1) {
+    for (dst_index[pos]=0; dst_index[pos] < y.dim.shape[pos]; dst_index[pos] += 1) {
+//      if (axis == ys[i].dim.shape.size()) { // along batch
+      if (axis == y.dim.shape.size()) { // along batch
         int offset1 = 0;
         for (int k=0; k < dst_index.size(); ++k) {
-          offset1 += dst_index[k] * ys[i].dim.stride[k];
+//          offset1 += dst_index[k] * ys[i].dim.stride[k];
+          offset1 += dst_index[k] * y.dim.stride[k];
         }
 
         int offset2 = 0;
         for (int k=0; k < dst_index.size(); ++k) {
             offset2 += dst_index[k] * x.dim.stride[k];
         }
-        ys[i].data[offset1] = x.data[offset2 + i * x.dim.size()];
+//        ys[i].data[offset1] = x.data[offset2 + i * x.dim.size()];
+        y.data[offset1] = x.data[offset2 + i * x.dim.size()];
       } else { // along axis
         int offset1 = 0;
-
-//        std::cout << "y[" << i << "]:";
         for (int k=0; k < dst_index.size(); ++k) {
-          offset1 += dst_index[k] * ys[i].dim.stride[k];
-//          std::cout << dst_index[k] << ", ";
+//          offset1 += dst_index[k] * ys[i].dim.stride[k];
+          offset1 += dst_index[k] * y.dim.stride[k];
         }
-//        std::cout << std::endl;
 
         int offset2 = 0;
-//        std::cout << "x:";
         for (int k=0; k < dst_index.size(); ++k) {
           if (k == axis) {
             offset2 += i * x.dim.stride[k];
-//            std::cout << i << ", ";
           } else {
             offset2 += dst_index[k] * x.dim.stride[k];
-//            std::cout << dst_index[k] << ", ";
           }
         }
-//        std::cout << std::endl;
-        for (int b=0; b < ys[i].dim.batch_size; ++b) {
-          ys[i].data[offset1 + b * ys[i].dim.size()] = x.data[offset2 + b * x.dim.size()];
-//          std::cout << "b:" << b << " " << ys[i].data[offset1 + b * ys[i].dim.size()] << std::endl;
+//        for (int b=0; b < ys[i].dim.batch_size; ++b) {
+        for (int b=0; b < y.dim.batch_size; ++b) {
+//          ys[i].data[offset1 + b * ys[i].dim.size()] = x.data[offset2 + b * x.dim.size()];
+          y.data[offset1 + b * y.dim.size()] = x.data[offset2 + b * x.dim.size()];
         }
-//        std::cout << std::endl;
       }
     }
   } else {
-    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] +=1) {
-      _split(dst_index, pos+1, x, i, ys, axis);
+//    for (dst_index[pos]=0; dst_index[pos] < ys[i].dim.shape[pos]; dst_index[pos] +=1) {
+    for (dst_index[pos]=0; dst_index[pos] < y.dim.shape[pos]; dst_index[pos] +=1) {
+//      _split(dst_index, pos+1, x, i, ys, axis);
+      _split(dst_index, pos+1, x, i, y, axis);
     }
   }
 }
 
-void split(Tensor &x, std::vector<Tensor> &ys, int axis) {
+void split(const Tensor &x, std::vector<Tensor> &ys, int axis) {
   for (int i=0; i < ys.size(); ++i) {
     std::vector<int> dst_index(ys[i].dim.shape.size(), 0);
-    _split(dst_index, 0, x, i, ys, axis);
+//    _split(dst_index, 0, x, i, ys, axis);
+    _split(dst_index, 0, x, i, ys[i], axis);
   }
-
 }
+
+void slice(const Tensor &x, Tensor &y, int k, int axis) {
+  std::vector<int> dst_index(y.dim.shape.size(), 0);
+  _split(dst_index, 0, x, k, y, axis);
+}
+
 
 } // namespace rnnpp
