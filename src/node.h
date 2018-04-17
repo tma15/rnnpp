@@ -15,6 +15,7 @@ class Node {
     Node() {}
 
     Node(std::initializer_list<int> a): args(a) {}
+    Node(std::vector<int> a): args(a) {}
 
     ~Node() {}
 
@@ -113,6 +114,32 @@ class LookupNode: public ParameterNodeBase {
     int index;
 };
 
+
+/**
+ *  y = [a, b]
+ *  dEda = dEdy * dEda = dEdy[0: len(a)]
+ *  dEdb = dEdy * dEdb = dEdy[len(a): len(b)]
+ */
+class Concat: public Node {
+  public:
+    Concat(): Node() {}
+
+    Concat(std::initializer_list<int> a, int axis): Node(a), axis_(axis) {}
+    Concat(std::vector<int> a, int axis): Node(a), axis_(axis) {}
+
+    ~Concat(){}
+
+    void forward(const std::vector<Tensor>& inputs, Tensor &output);
+    void forward2(const std::vector<Tensor>& inputs, std::vector<Tensor> &output){};
+
+    void backward(const std::vector<Tensor>& inputs, const Tensor &output,
+        const Tensor &dEdy, int ii, Tensor &dEdxi);
+
+    std::string type() { return "Concat"; }
+
+  private:
+    int axis_;
+};
 /**
  * y = x^2
  * dEdx = dEdy * dydx

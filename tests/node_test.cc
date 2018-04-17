@@ -41,6 +41,13 @@ TEST_F(GradientTest, Lookup) {
   EXPECT_TRUE(gradient_check(z));
 }
 
+TEST_F(GradientTest, Concat) {
+  Expression x = parameter(g, p1);
+  Expression y = parameter(g, p3);
+  Expression z = to_scalar(concat({x, y}, 1));
+  EXPECT_TRUE(gradient_check(z));
+}
+
 TEST_F(GradientTest, Add) {
   Expression x = parameter(g, p1);
   Expression y = parameter(g, p3);

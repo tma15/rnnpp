@@ -88,10 +88,41 @@ void Sum::backward(const std::vector<Tensor> &inputs, const Tensor &output,
   int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
   dEdxi.data = new float[k];
   dEdxi = Scalar(as_scalar(dEdy));
-
-//  std::cout << "dEdxi " << dEdxi.dim << "\n" << dEdxi << std::endl;
 }
 
+void Concat::forward(const std::vector<Tensor> &inputs, Tensor &output) {
+  if (axis_ == inputs[0].dim.shape.size()) { // concat along batch
+    int b = 0;
+    for (int i=0; i < inputs.size(); ++i) {
+      b += inputs[i].dim.batch_size;
+    }
+    output.dim = Dim(inputs[0].dim.shape, b);
+  } else { // concat along axis
+    int b = inputs[0].dim.batch_size;
+
+    std::vector<int> shape(inputs[0].dim.shape.size(), 0);
+    int k = 0;
+    for (int i=0; i < inputs[0].dim.shape.size(); ++i) {
+      shape[k++] = inputs[0].dim.shape[i];
+    }
+    for (int i=1; i < inputs.size(); ++i) {
+      shape[axis_] += inputs[i].dim.shape[axis_];
+    }
+    output.dim = Dim(shape, b);
+  }
+
+  int s = output.dim.size() * output.dim.batch_size;
+  output.data = new float[s];
+  concatenate(inputs, output, axis_);
+}
+
+void Concat::backward(const std::vector<Tensor> &inputs, const Tensor &output,
+    const Tensor &dEdy, int ii, Tensor &dEdxi) {
+  dEdxi.dim = inputs[ii].dim;
+  int k = dEdxi.dim.size() * dEdxi.dim.batch_size;
+  dEdxi.data = new float[k];
+  slice(dEdy, dEdxi, ii, axis_);
+}
 
 // f(a, b) = a + b
 // 
