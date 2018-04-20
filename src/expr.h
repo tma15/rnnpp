@@ -1,6 +1,8 @@
 #ifndef RNNPP_EXPR_H_
 #define RNNPP_EXPR_H_
 
+#include <initializer_list>
+
 #include "graph.h"
 
 namespace rnnpp {
@@ -39,6 +41,7 @@ Expression operator/(const Expression &a, const Expression &b);
 Expression operator/(const Expression &a, float b);
 Expression operator/(float a, const Expression &b);
 
+Expression concat(const std::initializer_list<Expression> &xs, int axis);
 
 } // namespace rnnpp
 

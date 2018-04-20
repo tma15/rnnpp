@@ -103,5 +103,20 @@ Expression operator/(float a, const Expression &b) {
   return e;
 }
 
+Expression concat(const std::initializer_list<Expression> &xs, int axis) {
+  std::vector<int> ids(xs.size());
+  int k = 0;
+  Graph* g;
+  for (auto x=xs.begin(); x != xs.end(); ++x) {
+    ids[k++] = x->id();
+    g = x->g_;
+  }
+  int nid = g->nodes().size();
+
+  Node* node = new Concat(ids, axis);
+  g->add_node(node);
+  Expression e(g, nid);
+  return e;
+}
 
 } // namespace rnnpp
