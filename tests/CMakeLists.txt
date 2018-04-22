@@ -9,19 +9,8 @@ link_directories(${GTEST_PATH}/lib)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${GTEST_PATH}/include)
 
-add_executable(rnnpp_tensor_test main.cc tensor_test.cc)
-add_test(NAME rnnpp_tensor_test COMMAND rnnpp_tensor_test)
-target_link_libraries(rnnpp_tensor_test rnnpp gtest gtest_main pthread)
-
-add_executable(rnnpp_node_test main.cc node_test.cc)
-add_test(NAME rnnpp_node_test COMMAND rnnpp_node_test)
-target_link_libraries(rnnpp_node_test rnnpp gtest gtest_main pthread)
-
-add_executable(rnnpp_parameter_test main.cc parameter_test.cc)
-add_test(NAME rnnpp_parameter_test COMMAND rnnpp_parameter_test)
-target_link_libraries(rnnpp_parameter_test rnnpp gtest gtest_main pthread)
-
-add_executable(rnnpp_dim_test main.cc dim_test.cc)
-add_test(NAME rnnpp_dim_test COMMAND rnnpp_dim_test)
-target_link_libraries(rnnpp_dim_test rnnpp gtest gtest_main pthread)
-
+foreach(TESTNAME expr dim graph node tensor parameter)
+	add_executable(rnnpp_${TESTNAME}_test main.cc ${TESTNAME}_test.cc)
+	add_test(NAME rnnpp_${TESTNAME}_test COMMAND rnnpp_${TESTNAME}_test)
+	target_link_libraries(rnnpp_${TESTNAME}_test rnnpp gtest gtest_main pthread)
+endforeach(TESTNAME)
