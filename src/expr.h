@@ -18,14 +18,18 @@ class Expression {
 
     const Tensor& forward();
 
+    std::vector<Tensor> forward2();
+
     void backward();
+
+    void backward2();
 
     Graph* graph() { return g_; };
 
     /** 
      * Returns expression id in a graph
      */
-    int id() const { return id_; }
+    const int id() const { return id_; }
 
     Graph* g_;
 
@@ -42,6 +46,9 @@ Expression operator/(const Expression &a, float b);
 Expression operator/(float a, const Expression &b);
 
 Expression concat(const std::initializer_list<Expression> &xs, int axis);
+
+std::vector<Expression> split(const Expression &x, int n, int axis);
+
 
 } // namespace rnnpp
 
