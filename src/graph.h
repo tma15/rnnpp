@@ -20,21 +20,16 @@ class Graph {
     void add_node(Node* node) { nodes_.push_back(node); }
     void add_parameter_node(int i) { parameter_node_ids_.push_back(i); }
 
+    int n_outputs() {
+      int n_out = 0;
+      for (int i=0; i < nodes().size(); ++i) {
+        n_out += nodes()[i]->n_out();
+      }
+      return n_out;
+    }
+
     std::vector<Tensor> outputs;
 
-    // dE/dx = dE/df * df/dx
-    //
-    // Sum:
-    //  y = a + b
-    //  dE/da = dE/dy * dy/da
-    //        = dE/dy
-    //
-    // Mult:
-    //  y = a * b
-    //  dE/da = dE/dy * dy/da
-    //        = dE/dy * b
-    //  dE/db = dE/dy * dy/db
-    //        = dE/dy * a
     std::vector<Tensor> grads;
 
   private:

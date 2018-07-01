@@ -9,8 +9,10 @@
 namespace rnnpp {
 
 bool gradient_check(Expression &expr) {
-  expr.forward();
-  expr.backward();
+//  expr.forward();
+//  expr.backward();
+  expr.forward2();
+  expr.backward2();
 
   Graph* g = expr.g_;
 
@@ -26,14 +28,16 @@ bool gradient_check(Expression &expr) {
       float old = g->outputs[nid].data[j];
 
       g->outputs[nid].data[j] += alpha;
-      float e_p = as_scalar(expr.forward());
+//      float e_p = as_scalar(expr.forward());
+      float e_p = as_scalar(expr.forward2()[0]);
 //      std::cout << "x+:" << g->outputs[nid].data[j] << std::endl;
 //      std::cout << g->outputs[nid] << std::endl;
 //      std::cout << "e+:" << e_p << std::endl;
 //      std::cout << std::endl;
 
       g->outputs[nid].data[j] -= 2. * alpha;
-      float e_m = as_scalar(expr.forward());
+//      float e_m = as_scalar(expr.forward());
+      float e_m = as_scalar(expr.forward2()[0]);
 //      std::cout << "x-:" << g->outputs[nid].data[j] << std::endl;
 //      std::cout << g->outputs[nid] << std::endl;
 //      std::cout << "e-:" << e_m << std::endl;
